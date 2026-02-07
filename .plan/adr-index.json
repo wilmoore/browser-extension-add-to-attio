@@ -1,0 +1,9 @@
+{
+  "lastSequence": 2,
+  "entries": [
+    {
+      "branch": "feat/fix-popup-state-display",
+      "adrs": ["001-use-attio-attribute-slugs.md", "002-flexible-url-matching.md"]
+    }
+  ]
+}
