@@ -4,7 +4,7 @@
  */
 
 import { getApiKey, updateLastSync } from './lib/storage.js';
-import { assertPerson, findPersonByAttribute, getWorkspaceSlug, AttioApiError } from './lib/attio-api.js';
+import { upsertPerson, findPersonByAttribute, getWorkspaceSlug, AttioApiError } from './lib/attio-api.js';
 
 /**
  * Platform-specific matching attributes for deduplication
@@ -258,8 +258,8 @@ async function handleCaptureProfile(platform, tabId, isUpdate = false) {
     // Determine matching attribute for deduplication
     const matchingAttribute = MATCHING_ATTRIBUTES[platform] || 'name';
 
-    // Create/update person in Attio
-    const result = await assertPerson(apiKey, profileData, matchingAttribute);
+    // Create/update person in Attio using query-then-create/update pattern
+    const result = await upsertPerson(apiKey, profileData, matchingAttribute, platform);
 
     // Update last sync timestamp
     await updateLastSync();
