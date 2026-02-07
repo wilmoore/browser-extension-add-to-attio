@@ -20,3 +20,4 @@ We use the [Michael Nygard format](https://cognitect.com/blog/2011/11/15/documen
 
 - [001. Use Attio Attribute Slugs for API Queries](001-use-attio-attribute-slugs.md)
 - [002. Flexible URL Matching with Contains](002-flexible-url-matching.md)
+- [003. Two-Step Upsert Pattern for Person Records](003-two-step-upsert-pattern.md)

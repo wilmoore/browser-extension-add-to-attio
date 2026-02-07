@@ -1,9 +1,13 @@
 {
-  "lastSequence": 2,
+  "lastSequence": 3,
   "entries": [
     {
       "branch": "feat/fix-popup-state-display",
       "adrs": ["001-use-attio-attribute-slugs.md", "002-flexible-url-matching.md"]
+    },
+    {
+      "branch": "fix/attio-matching-attribute-not-unique",
+      "adrs": ["003-two-step-upsert-pattern.md"]
     }
   ]
 }

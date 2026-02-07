@@ -17,46 +17,69 @@ export class AttioApiError extends Error {
 }
 
 /**
- * Create or update a person record in Attio using the assert endpoint
- * Uses matching_attribute for deduplication
- *
- * @param {string} apiKey - Attio API key
- * @param {Object} personData - Person data to create/update
- * @param {string} personData.fullName - Person's full name
- * @param {string} [personData.linkedinUrl] - LinkedIn profile URL
- * @param {string} [personData.twitterHandle] - Twitter/X handle
- * @param {string} [personData.redditUsername] - Reddit username
- * @param {string} [personData.description] - Person's headline/bio
- * @param {string} matchingAttribute - Attribute to use for deduplication
- * @returns {Promise<Object>} - Created/updated person record
+ * Build values object from person data for Attio API
+ * @param {Object} personData - Person data
+ * @returns {Object} - Values object for Attio API
  */
-export async function assertPerson(apiKey, personData, matchingAttribute = 'linkedin') {
+function buildValuesObject(personData) {
   const values = {};
 
-  // Always include name if provided
   if (personData.fullName) {
     values.name = [{ full_name: personData.fullName }];
   }
 
-  // Add LinkedIn URL (attribute slug is 'linkedin', not 'linkedin_url')
   if (personData.linkedinUrl) {
     values.linkedin = [{ value: personData.linkedinUrl }];
   }
 
-  // Add Twitter handle
   if (personData.twitterHandle) {
     values.twitter = [{ value: personData.twitterHandle }];
   }
 
-  // Add description/headline
   if (personData.description) {
     values.description = [{ value: personData.description }];
   }
 
-  const url = `${ATTIO_API_BASE}/objects/people/records?matching_attribute=${matchingAttribute}`;
+  return values;
+}
+
+/**
+ * Handle API error responses consistently
+ * @param {Response} response - Fetch response object
+ * @throws {AttioApiError}
+ */
+async function handleApiError(response) {
+  const errorBody = await response.json().catch(() => ({}));
+
+  switch (response.status) {
+    case 401:
+      throw new AttioApiError('Invalid API key. Please check your credentials.', 401, errorBody);
+    case 403:
+      throw new AttioApiError('Access denied. Your API key may not have the required permissions.', 403, errorBody);
+    case 429:
+      throw new AttioApiError('Rate limit exceeded. Please try again in a moment.', 429, errorBody);
+    case 400:
+      throw new AttioApiError(`Invalid request: ${errorBody.message || 'Bad request'}`, 400, errorBody);
+    default:
+      throw new AttioApiError(`Attio API error: ${response.statusText}`, response.status, errorBody);
+  }
+}
+
+/**
+ * Create a new person record in Attio
+ *
+ * @param {string} apiKey - Attio API key
+ * @param {Object} personData - Person data to create
+ * @returns {Promise<Object>} - Created person record
+ */
+export async function createPerson(apiKey, personData) {
+  const values = buildValuesObject(personData);
+  const url = `${ATTIO_API_BASE}/objects/people/records`;
+
+  console.log('[Add to Attio API] Creating person:', { url, values });
 
   const response = await fetch(url, {
-    method: 'PUT',
+    method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json'
@@ -67,23 +90,105 @@ export async function assertPerson(apiKey, personData, matchingAttribute = 'link
   });
 
   if (!response.ok) {
-    const errorBody = await response.json().catch(() => ({}));
-
-    switch (response.status) {
-      case 401:
-        throw new AttioApiError('Invalid API key. Please check your credentials.', 401, errorBody);
-      case 403:
-        throw new AttioApiError('Access denied. Your API key may not have the required permissions.', 403, errorBody);
-      case 429:
-        throw new AttioApiError('Rate limit exceeded. Please try again in a moment.', 429, errorBody);
-      case 400:
-        throw new AttioApiError(`Invalid request: ${errorBody.message || 'Bad request'}`, 400, errorBody);
-      default:
-        throw new AttioApiError(`Attio API error: ${response.statusText}`, response.status, errorBody);
-    }
+    await handleApiError(response);
   }
 
   return response.json();
+}
+
+/**
+ * Update an existing person record in Attio
+ *
+ * @param {string} apiKey - Attio API key
+ * @param {string} recordId - Attio record ID to update
+ * @param {Object} personData - Person data to update
+ * @returns {Promise<Object>} - Updated person record
+ */
+export async function updatePerson(apiKey, recordId, personData) {
+  const values = buildValuesObject(personData);
+  const url = `${ATTIO_API_BASE}/objects/people/records/${recordId}`;
+
+  console.log('[Add to Attio API] Updating person:', { url, recordId, values });
+
+  const response = await fetch(url, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      data: { values }
+    })
+  });
+
+  if (!response.ok) {
+    await handleApiError(response);
+  }
+
+  return response.json();
+}
+
+/**
+ * Get the search value from person data based on platform
+ * @param {string} platform - Platform identifier
+ * @param {Object} personData - Person data
+ * @returns {string|null} - Value to search by
+ */
+function getSearchValue(platform, personData) {
+  switch (platform) {
+    case 'linkedin':
+      return personData.linkedinUrl;
+    case 'twitter':
+      return personData.twitterHandle;
+    case 'reddit':
+      return personData.fullName;
+    default:
+      return null;
+  }
+}
+
+/**
+ * Upsert a person record in Attio using query-then-create/update pattern
+ *
+ * This approach is required because Attio's matching_attribute parameter
+ * only works with unique attributes, and 'linkedin' is not unique for
+ * the People standard object.
+ *
+ * @param {string} apiKey - Attio API key
+ * @param {Object} personData - Person data to create/update
+ * @param {string} personData.fullName - Person's full name
+ * @param {string} [personData.linkedinUrl] - LinkedIn profile URL
+ * @param {string} [personData.twitterHandle] - Twitter/X handle
+ * @param {string} [personData.redditUsername] - Reddit username
+ * @param {string} [personData.description] - Person's headline/bio
+ * @param {string} matchingAttribute - Attribute to use for deduplication lookup
+ * @param {string} platform - Platform identifier (linkedin, twitter, reddit)
+ * @returns {Promise<Object>} - Created/updated person record
+ */
+export async function upsertPerson(apiKey, personData, matchingAttribute, platform) {
+  // Get the value to search by for this platform
+  const searchValue = getSearchValue(platform, personData);
+
+  console.log('[Add to Attio API] Upserting person:', {
+    platform,
+    matchingAttribute,
+    searchValue
+  });
+
+  // Step 1: Query for existing record
+  const existingPerson = searchValue
+    ? await findPersonByAttribute(apiKey, matchingAttribute, searchValue)
+    : null;
+
+  // Step 2: Create or update based on result
+  if (existingPerson) {
+    const recordId = existingPerson.id?.record_id;
+    console.log('[Add to Attio API] Found existing person, updating:', recordId);
+    return await updatePerson(apiKey, recordId, personData);
+  } else {
+    console.log('[Add to Attio API] No existing person found, creating new');
+    return await createPerson(apiKey, personData);
+  }
 }
 
 /**
