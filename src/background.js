@@ -198,15 +198,31 @@ async function handleCheckPerson(platform, tabId) {
       const workspaceSlug = await getWorkspaceSlug(apiKey);
       const recordId = existingPerson.id?.record_id;
 
+      console.log('[Add to Attio] Building Attio URL:', {
+        workspaceSlug,
+        recordId,
+        existingPersonId: existingPerson.id
+      });
+
       let attioUrl = null;
       if (workspaceSlug && recordId) {
         attioUrl = `https://app.attio.com/${workspaceSlug}/person/${recordId}`;
+      } else {
+        console.warn('[Add to Attio] Missing workspaceSlug or recordId for URL construction');
       }
 
-      // Extract name from existing record
+      // Extract name from existing record, falling back to scraped data
       const existingName = existingPerson.values?.name?.[0]?.full_name ||
                           existingPerson.values?.name?.[0]?.first_name ||
-                          profileData.fullName;
+                          profileData.fullName ||
+                          'Unknown';
+
+      console.log('[Add to Attio] Resolved person name:', {
+        fromAttioFullName: existingPerson.values?.name?.[0]?.full_name,
+        fromAttioFirstName: existingPerson.values?.name?.[0]?.first_name,
+        fromProfileData: profileData.fullName,
+        resolved: existingName
+      });
 
       // Update badge to show exists
       await updateBadge(tabId, BADGE_STATES.EXISTS);

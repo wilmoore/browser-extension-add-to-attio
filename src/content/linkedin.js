@@ -14,29 +14,88 @@ function extractLinkedInProfile() {
     const usernameMatch = profileUrl.match(/linkedin\.com\/in\/([^/]+)/);
     const username = usernameMatch ? usernameMatch[1] : null;
 
-    // Get name from h1 element
-    const nameElement = document.querySelector('h1.text-heading-xlarge');
-    const fullName = nameElement?.textContent?.trim() || null;
+    // Get name - try multiple selectors as LinkedIn changes their HTML
+    // Priority: most specific to least specific
+    const nameSelectors = [
+      'h1.text-heading-xlarge',                    // Current main profile (2024+)
+      '.pv-text-details__left-panel h1',           // Profile details panel
+      '[data-generated-suggestion-target] h1',     // Suggested profile variant
+      'h1[data-anonymize="person-name"]',          // Data attribute variant
+      '.ph5 h1',                                   // Mobile/compact view
+      '.pv-top-card h1',                           // Top card variant
+      '.scaffold-layout__main h1',                 // Layout variant
+      'section.pv-top-card h1',                    // Section variant
+      '.artdeco-card h1',                          // Card container variant
+      'main h1',                                   // Main content h1
+      'h1'                                         // Last resort: first h1
+    ];
+
+    let fullName = null;
+    for (const selector of nameSelectors) {
+      const element = document.querySelector(selector);
+      const text = element?.textContent?.trim();
+      // Skip if text is too short or looks like a navigation element
+      if (text && text.length > 1 && !text.includes('LinkedIn')) {
+        fullName = text;
+        console.log('[Add to Attio] Found name with selector:', selector, '→', fullName);
+        break;
+      }
+    }
 
     // Get headline (usually in a div below the name)
-    const headlineElement = document.querySelector('.text-body-medium.break-words');
-    const headline = headlineElement?.textContent?.trim() || null;
+    const headlineSelectors = [
+      '.text-body-medium.break-words',
+      '[data-anonymize="headline"]',
+      '.pv-top-card--list .text-body-medium',
+      '.pv-top-card .pv-top-card--photo-resize + div + div'
+    ];
+
+    let headline = null;
+    for (const selector of headlineSelectors) {
+      const element = document.querySelector(selector);
+      const text = element?.textContent?.trim();
+      if (text && text.length > 1) {
+        headline = text;
+        console.log('[Add to Attio] Found headline with selector:', selector);
+        break;
+      }
+    }
+
+    console.log('[Add to Attio] Extracted profile data:', {
+      fullName,
+      username,
+      profileUrl,
+      headline: headline?.substring(0, 50) + (headline?.length > 50 ? '...' : '')
+    });
 
     // Validate we have minimum required data
     if (!fullName && !username) {
+      console.warn('[Add to Attio] Could not extract name or username');
       return {
         error: 'Could not find profile information. Make sure you are on a LinkedIn profile page.'
       };
     }
 
+    // If we couldn't extract the name but have a username, use a formatted version of it
+    // e.g., "john-doe-123" becomes "John Doe"
+    let displayName = fullName;
+    if (!displayName && username) {
+      // Remove trailing numbers/IDs and convert dashes to spaces
+      displayName = username
+        .replace(/-\d+$/, '')           // Remove trailing -123 style IDs
+        .replace(/-/g, ' ')             // Replace dashes with spaces
+        .replace(/\b\w/g, c => c.toUpperCase());  // Capitalize each word
+      console.log('[Add to Attio] Using formatted username as name:', displayName);
+    }
+
     return {
-      fullName,
+      fullName: displayName,
       linkedinUrl: profileUrl,
       username,
       description: headline
     };
   } catch (error) {
-    console.error('LinkedIn extraction error:', error);
+    console.error('[Add to Attio] LinkedIn extraction error:', error);
     return {
       error: 'Failed to extract profile data. Please try again.'
     };

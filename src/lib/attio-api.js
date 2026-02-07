@@ -299,10 +299,17 @@ export async function getWorkspaceSlug(apiKey) {
 
     if (response.ok) {
       const data = await response.json();
-      return data.data?.workspace?.slug || null;
+      const slug = data.data?.workspace?.slug || null;
+      console.log('[Add to Attio API] getWorkspaceSlug result:', {
+        slug,
+        workspaceData: data.data?.workspace
+      });
+      return slug;
     }
+    console.warn('[Add to Attio API] getWorkspaceSlug failed:', response.status);
     return null;
-  } catch {
+  } catch (error) {
+    console.error('[Add to Attio API] getWorkspaceSlug error:', error);
     return null;
   }
 }
