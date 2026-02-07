@@ -1,0 +1,51 @@
+{
+  "name": "add-to-attio",
+  "version": "1.0.1",
+  "description": "Capture LinkedIn, X, and Reddit profiles and add them to Attio",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "package": "npm run build && cd dist && zip -r ../dist.zip . && cd ..",
+    "cws:init": "chrome-webstore-upload-cli init",
+    "cws:upload": "chrome-webstore-upload upload --source dist.zip --extension-id $EXTENSION_ID",
+    "cws:publish": "chrome-webstore-upload publish --extension-id $EXTENSION_ID",
+    "cws:deploy": "npm run package && npm run cws:upload && npm run cws:publish",
+    "cws:console": "make cws-console",
+    "cws:edit": "make cws-edit",
+    "cws:listing": "make cws-listing",
+    "release": "bash scripts/release.sh patch",
+    "release:minor": "bash scripts/release.sh minor",
+    "release:major": "bash scripts/release.sh major",
+    "release:local": "npm run cws:deploy",
+    "sync-version": "node -e \"const fs=require('fs');const pkg=JSON.parse(fs.readFileSync('package.json'));const mPath='public/manifest.json';const m=JSON.parse(fs.readFileSync(mPath));m.version=pkg.version;fs.writeFileSync(mPath,JSON.stringify(m,null,2)+'\\n');console.log('Synced manifest.json to v'+pkg.version)\"",
+    "manifest": "cat public/manifest.json"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "^2.0.0-beta.28",
+    "@playwright/test": "^1.57.0",
+    "@types/chrome": "^0.0.280",
+    "@vitest/coverage-v8": "^3.2.4",
+    "chrome-webstore-upload-cli": "^3.5.0",
+    "jsdom": "^26.0.0",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11",
+    "vitest": "^3.2.4"
+  },
+  "keywords": [
+    "chrome-extension",
+    "attio",
+    "linkedin",
+    "twitter",
+    "reddit"
+  ],
+  "author": "",
+  "license": "MIT"
+}

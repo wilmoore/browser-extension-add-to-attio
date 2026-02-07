@@ -20,10 +20,15 @@ Capture LinkedIn, X (Twitter), and Reddit profiles and add them to Attio with a 
 ### Development / Local Installation
 
 1. Clone this repository
-2. Open Chrome and navigate to `chrome://extensions/`
-3. Enable "Developer mode" (toggle in top right)
-4. Click "Load unpacked"
-5. Select the project directory
+2. Install dependencies and build:
+   ```bash
+   npm install
+   npm run build
+   ```
+3. Open Chrome and navigate to `chrome://extensions/`
+4. Enable "Developer mode" (toggle in top right)
+5. Click "Load unpacked"
+6. Select the `dist/` folder
 
 ### Getting an Attio API Key
 
@@ -90,7 +95,9 @@ This ensures no duplicate records are created when capturing the same profile mu
 
 ```
 browser-extension-add-to-attio/
-├── manifest.json          # Extension manifest (V3)
+├── public/
+│   ├── manifest.json      # Extension manifest (V3)
+│   └── icons/             # Extension icons
 ├── src/
 │   ├── background.js      # Service worker for API calls
 │   ├── content/
@@ -105,10 +112,11 @@ browser-extension-add-to-attio/
 │   └── lib/
 │       ├── attio-api.js   # Attio API client
 │       └── storage.js     # Chrome storage wrapper
-├── icons/
-│   ├── icon-16.png
-│   ├── icon-48.png
-│   └── icon-128.png
+├── docs/
+│   ├── DEVELOPMENT.md     # Development workflow guide
+│   ├── PUBLISHING.md      # Chrome Web Store setup
+│   └── RELEASING.md       # Release workflow
+├── dist/                  # Built extension (load this in Chrome)
 └── README.md
 ```
 
@@ -121,13 +129,49 @@ browser-extension-add-to-attio/
 
 ## Development
 
-No build step required. The extension uses ES modules directly.
+```bash
+npm install          # Install dependencies
+npm run build        # Build to dist/
+```
 
-To test changes:
-1. Make your edits
-2. Go to `chrome://extensions/`
-3. Click the refresh icon on the extension card
-4. Test on a profile page
+### Loading the Extension
+
+1. Go to `chrome://extensions/`
+2. Enable "Developer mode"
+3. Click "Load unpacked"
+4. Select the `dist/` folder
+
+### Development Workflow
+
+```bash
+1. Make code changes
+2. npm run build
+3. Reload extension (chrome://extensions → ↻)
+4. Refresh target page
+5. Test
+```
+
+> **Important:** Chrome extension hot reload is unreliable. See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for details on when to refresh the page vs reload the extension vs remove and re-add it. This will save you from debugging phantom issues caused by stale extension state.
+
+### Available Commands
+
+| Command | Purpose |
+|---------|---------|
+| `npm run build` | Build extension to dist/ |
+| `npm run dev` | Dev server (limited hot reload) |
+| `npm run test:run` | Run unit tests |
+| `npm run test:e2e` | Run E2E tests |
+| `make help` | Show all available make targets |
+
+### Releasing
+
+```bash
+npm run release         # Bump patch, build, push tag → CI deploys to Chrome Web Store
+npm run release:minor   # Bump minor version
+npm run release:major   # Bump major version
+```
+
+See [docs/PUBLISHING.md](docs/PUBLISHING.md) for Chrome Web Store OAuth setup.
 
 ## Privacy
 
