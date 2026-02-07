@@ -1,0 +1,16 @@
+{
+  "lastSequence": 1,
+  "specs": [
+    {
+      "id": "spec-001",
+      "title": "Add to Attio — Product Requirements Document",
+      "filename": "spec-001-add-to-attio-prd.md",
+      "source": "clipboard",
+      "importedAt": "2026-02-06T13:15:00Z",
+      "extractedItems": {
+        "epics": 6,
+        "stories": 10
+      }
+    }
+  ]
+}

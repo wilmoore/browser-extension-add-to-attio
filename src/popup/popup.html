@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add to Attio</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Add to Attio</h1>
+    </header>
+
+    <!-- Auth Form (shown when not connected) -->
+    <div id="auth-section" class="section hidden">
+      <p class="description">Enter your Attio API key to get started.</p>
+      <form id="auth-form">
+        <div class="form-group">
+          <label for="api-key">API Key</label>
+          <input
+            type="password"
+            id="api-key"
+            name="api-key"
+            placeholder="attio_..."
+            autocomplete="off"
+            required
+          />
+        </div>
+        <button type="submit" id="connect-btn" class="btn btn-primary">
+          Connect
+        </button>
+      </form>
+      <p class="help-text">
+        <a href="https://attio.com/help/apps/other-apps/generating-an-api-key" target="_blank" rel="noopener">
+          How to get your API key
+        </a>
+      </p>
+    </div>
+
+    <!-- Connected State (shown when authenticated) -->
+    <div id="connected-section" class="section hidden">
+      <div class="status-indicator connected">
+        <span class="status-dot"></span>
+        <span>Connected to Attio</span>
+      </div>
+
+      <div id="capture-section">
+        <!-- Loading state -->
+        <div id="loading-state" class="hidden">
+          <p class="description">Checking Attio...</p>
+        </div>
+
+        <!-- Not on profile page -->
+        <div id="no-profile-state" class="hidden">
+          <p class="description">Navigate to a LinkedIn, X, or Reddit profile to capture.</p>
+        </div>
+
+        <!-- Person exists in Attio -->
+        <div id="exists-state" class="hidden">
+          <div class="person-card">
+            <span class="person-icon">&#128100;</span>
+            <div class="person-info">
+              <span class="person-name" id="person-name"></span>
+              <span class="person-status">Already in Attio</span>
+            </div>
+          </div>
+          <a id="view-btn" href="#" target="_blank" class="btn btn-primary">
+            View in Attio
+          </a>
+          <button id="update-btn" class="btn btn-secondary">
+            Update Info
+          </button>
+        </div>
+
+        <!-- Person does not exist -->
+        <div id="new-state" class="hidden">
+          <p class="description" id="page-status">Ready to capture profile.</p>
+          <button id="capture-btn" class="btn btn-primary">
+            Add to Attio
+          </button>
+        </div>
+      </div>
+
+      <hr />
+
+      <button id="disconnect-btn" class="btn btn-tertiary">
+        Disconnect
+      </button>
+    </div>
+
+    <!-- Status Messages -->
+    <div id="message" class="message hidden"></div>
+  </div>
+
+  <script src="popup.js" type="module"></script>
+</body>
+</html>
