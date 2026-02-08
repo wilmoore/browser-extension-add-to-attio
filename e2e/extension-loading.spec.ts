@@ -1,5 +1,6 @@
 import { test, expect, chromium, BrowserContext } from '@playwright/test';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 /**
  * E2E tests for Add to Attio Chrome extension.
@@ -7,6 +8,9 @@ import path from 'path';
  * These tests verify that the extension loads correctly in Chrome.
  * Chrome extensions require headed mode (headless: false).
  */
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 let context: BrowserContext;
 

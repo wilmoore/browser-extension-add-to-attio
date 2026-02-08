@@ -3,57 +3,50 @@
  * Handles authentication and profile capture initiation
  */
 
-import { getApiKey, setApiKey, clearApiKey, isAuthenticated } from '../lib/storage.js';
+import { setApiKey, clearApiKey, isAuthenticated } from '../lib/storage.js';
 import { validateApiKey } from '../lib/attio-api.js';
+import { log } from '../lib/logger.js';
+import { SUPPORTED_PLATFORMS } from '../constants/index.js';
+import type { Platform, CheckPersonResponse, CaptureResponse } from '../types/index.js';
 
 // DOM Elements
-const authSection = document.getElementById('auth-section');
-const connectedSection = document.getElementById('connected-section');
-const authForm = document.getElementById('auth-form');
-const apiKeyInput = document.getElementById('api-key');
-const connectBtn = document.getElementById('connect-btn');
-const disconnectBtn = document.getElementById('disconnect-btn');
-const messageEl = document.getElementById('message');
+const authSection = document.getElementById('auth-section') as HTMLElement;
+const connectedSection = document.getElementById('connected-section') as HTMLElement;
+const authForm = document.getElementById('auth-form') as HTMLFormElement;
+const apiKeyInput = document.getElementById('api-key') as HTMLInputElement;
+const connectBtn = document.getElementById('connect-btn') as HTMLButtonElement;
+const disconnectBtn = document.getElementById('disconnect-btn') as HTMLButtonElement;
+const messageEl = document.getElementById('message') as HTMLElement;
 
 // Capture section states
-const loadingState = document.getElementById('loading-state');
-const noProfileState = document.getElementById('no-profile-state');
-const existsState = document.getElementById('exists-state');
-const newState = document.getElementById('new-state');
+const loadingState = document.getElementById('loading-state') as HTMLElement;
+const noProfileState = document.getElementById('no-profile-state') as HTMLElement;
+const existsState = document.getElementById('exists-state') as HTMLElement;
+const newState = document.getElementById('new-state') as HTMLElement;
 
 // Exists state elements
-const personName = document.getElementById('person-name');
-const viewBtn = document.getElementById('view-btn');
-const updateBtn = document.getElementById('update-btn');
+const personName = document.getElementById('person-name') as HTMLElement;
+const viewBtn = document.getElementById('view-btn') as HTMLAnchorElement;
+const updateBtn = document.getElementById('update-btn') as HTMLButtonElement;
 
 // New state elements
-const captureBtn = document.getElementById('capture-btn');
-const pageStatus = document.getElementById('page-status');
+const captureBtn = document.getElementById('capture-btn') as HTMLButtonElement;
+const pageStatus = document.getElementById('page-status') as HTMLElement;
 
 // Current context
-let currentPlatform = null;
-let currentTabId = null;
+let currentPlatform: Platform | null = null;
+let currentTabId: number | null = null;
 
-// Supported platforms
-const SUPPORTED_PLATFORMS = {
-  linkedin: {
-    pattern: /^https:\/\/(www\.)?linkedin\.com\/in\//,
-    name: 'LinkedIn'
-  },
-  twitter: {
-    pattern: /^https:\/\/(www\.)?(twitter|x)\.com\/[^/]+\/?$/,
-    name: 'X (Twitter)'
-  },
-  reddit: {
-    pattern: /^https:\/\/(www\.)?reddit\.com\/user\//,
-    name: 'Reddit'
-  }
-};
+interface DetectedPlatform {
+  key: Platform;
+  pattern: RegExp;
+  name: string;
+}
 
 /**
  * Hide all capture states
  */
-function hideAllStates() {
+function hideAllStates(): void {
   loadingState.classList.add('hidden');
   noProfileState.classList.add('hidden');
   existsState.classList.add('hidden');
@@ -63,7 +56,7 @@ function hideAllStates() {
 /**
  * Show a specific state
  */
-function showState(stateEl) {
+function showState(stateEl: HTMLElement): void {
   hideAllStates();
   stateEl.classList.remove('hidden');
 }
@@ -71,7 +64,7 @@ function showState(stateEl) {
 /**
  * Show a message to the user
  */
-function showMessage(text, type = 'info') {
+function showMessage(text: string, type: 'info' | 'success' | 'error' = 'info'): void {
   messageEl.textContent = text;
   messageEl.className = `message ${type}`;
   messageEl.classList.remove('hidden');
@@ -86,14 +79,14 @@ function showMessage(text, type = 'info') {
 /**
  * Hide the message
  */
-function hideMessage() {
+function hideMessage(): void {
   messageEl.classList.add('hidden');
 }
 
 /**
  * Update UI based on authentication state
  */
-async function updateAuthState() {
+async function updateAuthState(): Promise<void> {
   const authenticated = await isAuthenticated();
 
   if (authenticated) {
@@ -109,10 +102,10 @@ async function updateAuthState() {
 /**
  * Detect which platform the current tab is on
  */
-function detectPlatform(url) {
+function detectPlatform(url: string): DetectedPlatform | null {
   for (const [key, platform] of Object.entries(SUPPORTED_PLATFORMS)) {
     if (platform.pattern.test(url)) {
-      return { key, ...platform };
+      return { key: key as Platform, ...platform };
     }
   }
   return null;
@@ -121,21 +114,21 @@ function detectPlatform(url) {
 /**
  * Check if current page is a supported profile page and if person exists
  */
-async function checkCurrentPage() {
+async function checkCurrentPage(): Promise<void> {
   showState(loadingState);
 
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    console.log('[Add to Attio Popup] Current tab:', tab);
+    log.popup('Current tab: %O', tab);
 
     if (!tab?.url) {
-      console.log('[Add to Attio Popup] No tab URL');
+      log.popup('No tab URL');
       showState(noProfileState);
       return;
     }
 
     const platform = detectPlatform(tab.url);
-    console.log('[Add to Attio Popup] Detected platform:', platform);
+    log.popup('Detected platform: %O', platform);
 
     if (!platform) {
       showState(noProfileState);
@@ -143,21 +136,21 @@ async function checkCurrentPage() {
     }
 
     currentPlatform = platform.key;
-    currentTabId = tab.id;
+    currentTabId = tab.id ?? null;
 
     // Check if person exists in Attio
-    console.log('[Add to Attio Popup] Sending checkPerson message');
+    log.popup('Sending checkPerson message');
     const response = await chrome.runtime.sendMessage({
       action: 'checkPerson',
       platform: platform.key,
-      tabId: tab.id
-    });
+      tabId: tab.id,
+    }) as CheckPersonResponse;
 
-    console.log('[Add to Attio Popup] Response:', response);
+    log.popup('Response: %O', response);
 
     // Handle case where response is missing or malformed
     if (!response) {
-      console.error('[Add to Attio Popup] No response from background');
+      log.popup('No response from background');
       showMessage('Failed to check profile status.', 'error');
       showState(noProfileState);
       return;
@@ -165,16 +158,16 @@ async function checkCurrentPage() {
 
     // Handle error response - show error and stop processing
     if (response.error) {
-      console.error('[Add to Attio Popup] Error from background:', response.error);
+      log.popup('Error from background: %s', response.error);
       showMessage(response.error, 'error');
       showState(noProfileState);
       return;
     }
 
-    console.log('[Add to Attio Popup] Check result:', {
+    log.popup('Check result: %O', {
       exists: response.exists,
       hasPerson: !!response.person,
-      personName: response.person?.name
+      personName: response.person?.name,
     });
 
     if (response.exists && response.person) {
@@ -191,7 +184,7 @@ async function checkCurrentPage() {
       showState(existsState);
     } else if (response.exists && !response.person) {
       // Person exists but we couldn't get their details - still show exists state
-      console.warn('[Add to Attio Popup] Person exists but person data missing');
+      log.popup('Person exists but person data missing');
       personName.textContent = 'Unknown';
       viewBtn.classList.add('hidden');
       showState(existsState);
@@ -201,7 +194,7 @@ async function checkCurrentPage() {
       showState(newState);
     }
   } catch (error) {
-    console.error('[Add to Attio Popup] Error checking page:', error);
+    log.popup('Error checking page: %O', error);
     showMessage('Failed to check profile status.', 'error');
     showState(noProfileState);
   }
@@ -210,7 +203,7 @@ async function checkCurrentPage() {
 /**
  * Handle connect form submission
  */
-async function handleConnect(event) {
+async function handleConnect(event: Event): Promise<void> {
   event.preventDefault();
   hideMessage();
 
@@ -235,7 +228,7 @@ async function handleConnect(event) {
       showMessage('Invalid API key. Please check and try again.', 'error');
     }
   } catch (error) {
-    console.error('Connection error:', error);
+    log.popup('Connection error: %O', error);
     showMessage('Connection failed. Please try again.', 'error');
   } finally {
     connectBtn.disabled = false;
@@ -246,7 +239,7 @@ async function handleConnect(event) {
 /**
  * Handle disconnect
  */
-async function handleDisconnect() {
+async function handleDisconnect(): Promise<void> {
   await clearApiKey();
   apiKeyInput.value = '';
   hideMessage();
@@ -256,7 +249,7 @@ async function handleDisconnect() {
 /**
  * Handle capture button click (new person)
  */
-async function handleCapture() {
+async function handleCapture(): Promise<void> {
   if (!currentPlatform || !currentTabId) {
     showMessage('Unable to capture. Please refresh and try again.', 'error');
     return;
@@ -271,8 +264,8 @@ async function handleCapture() {
       action: 'captureProfile',
       platform: currentPlatform,
       tabId: currentTabId,
-      isUpdate: false
-    });
+      isUpdate: false,
+    }) as CaptureResponse;
 
     if (response.success) {
       showMessage('Profile added to Attio!', 'success');
@@ -282,7 +275,7 @@ async function handleCapture() {
       showMessage(response.error || 'Failed to capture profile.', 'error');
     }
   } catch (error) {
-    console.error('Capture error:', error);
+    log.popup('Capture error: %O', error);
     showMessage('Failed to capture profile. Please try again.', 'error');
   } finally {
     captureBtn.disabled = false;
@@ -293,7 +286,7 @@ async function handleCapture() {
 /**
  * Handle update button click (existing person)
  */
-async function handleUpdate() {
+async function handleUpdate(): Promise<void> {
   if (!currentPlatform || !currentTabId) {
     showMessage('Unable to update. Please refresh and try again.', 'error');
     return;
@@ -308,8 +301,8 @@ async function handleUpdate() {
       action: 'captureProfile',
       platform: currentPlatform,
       tabId: currentTabId,
-      isUpdate: true
-    });
+      isUpdate: true,
+    }) as CaptureResponse;
 
     if (response.success) {
       showMessage('Profile updated in Attio!', 'success');
@@ -317,7 +310,7 @@ async function handleUpdate() {
       showMessage(response.error || 'Failed to update profile.', 'error');
     }
   } catch (error) {
-    console.error('Update error:', error);
+    log.popup('Update error: %O', error);
     showMessage('Failed to update profile. Please try again.', 'error');
   } finally {
     updateBtn.disabled = false;

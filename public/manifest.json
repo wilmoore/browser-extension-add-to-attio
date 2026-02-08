@@ -20,7 +20,7 @@
     "128": "icons/icon-128.png"
   },
   "background": {
-    "service_worker": "src/background.js",
+    "service_worker": "src/background.ts",
     "type": "module"
   },
   "content_scripts": [
@@ -29,7 +29,7 @@
         "https://www.linkedin.com/in/*",
         "https://linkedin.com/in/*"
       ],
-      "js": ["src/content/linkedin.js"],
+      "js": ["src/content/linkedin.ts"],
       "css": ["styles/feedback.css"]
     },
     {
@@ -37,7 +37,7 @@
         "https://x.com/*",
         "https://twitter.com/*"
       ],
-      "js": ["src/content/twitter.js"],
+      "js": ["src/content/twitter.ts"],
       "css": ["styles/feedback.css"]
     },
     {
@@ -45,7 +45,7 @@
         "https://www.reddit.com/user/*",
         "https://reddit.com/user/*"
       ],
-      "js": ["src/content/reddit.js"],
+      "js": ["src/content/reddit.ts"],
       "css": ["styles/feedback.css"]
     }
   ]

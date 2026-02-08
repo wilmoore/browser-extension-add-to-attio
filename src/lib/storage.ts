@@ -2,61 +2,54 @@
  * Chrome storage wrapper for managing extension state
  */
 
-const STORAGE_KEYS = {
+import type { StorageKeys } from '../types/index.js';
+
+export const STORAGE_KEYS: StorageKeys = {
   API_KEY: 'attio_api_key',
-  LAST_SYNC: 'last_sync_timestamp'
+  LAST_SYNC: 'last_sync_timestamp',
 };
 
 /**
  * Get the stored Attio API key
- * @returns {Promise<string|null>}
  */
-export async function getApiKey() {
+export async function getApiKey(): Promise<string | null> {
   const result = await chrome.storage.local.get(STORAGE_KEYS.API_KEY);
   return result[STORAGE_KEYS.API_KEY] || null;
 }
 
 /**
  * Save the Attio API key
- * @param {string} apiKey
- * @returns {Promise<void>}
  */
-export async function setApiKey(apiKey) {
+export async function setApiKey(apiKey: string): Promise<void> {
   await chrome.storage.local.set({ [STORAGE_KEYS.API_KEY]: apiKey });
 }
 
 /**
  * Clear the stored API key (disconnect)
- * @returns {Promise<void>}
  */
-export async function clearApiKey() {
+export async function clearApiKey(): Promise<void> {
   await chrome.storage.local.remove(STORAGE_KEYS.API_KEY);
 }
 
 /**
  * Check if the extension is authenticated
- * @returns {Promise<boolean>}
  */
-export async function isAuthenticated() {
+export async function isAuthenticated(): Promise<boolean> {
   const apiKey = await getApiKey();
   return apiKey !== null && apiKey.length > 0;
 }
 
 /**
  * Update the last sync timestamp
- * @returns {Promise<void>}
  */
-export async function updateLastSync() {
+export async function updateLastSync(): Promise<void> {
   await chrome.storage.local.set({ [STORAGE_KEYS.LAST_SYNC]: Date.now() });
 }
 
 /**
  * Get the last sync timestamp
- * @returns {Promise<number|null>}
  */
-export async function getLastSync() {
+export async function getLastSync(): Promise<number | null> {
   const result = await chrome.storage.local.get(STORAGE_KEYS.LAST_SYNC);
   return result[STORAGE_KEYS.LAST_SYNC] || null;
 }
-
-export { STORAGE_KEYS };
