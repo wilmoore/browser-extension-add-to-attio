@@ -1,5 +1,5 @@
 {
-  "lastSequence": 17,
+  "lastSequence": 18,
   "items": [
     {
       "id": 1,
@@ -261,6 +261,18 @@
       "source": "/pro:feature",
       "sourceBranch": "feat/fix-popup-state-display",
       "createdAt": "2026-02-06T18:50:00Z",
+      "status": "in-progress"
+    },
+    {
+      "id": 18,
+      "title": "CSS path resolution fails in Vite build",
+      "description": "Bug: Extension fails to load after npm run build with error 'Could not load css src/content/feedback.css for script'. CRXJS does not process CSS files in content_scripts, so manifest references a path that doesn't exist in dist/. Fix: Move CSS to public/styles/ so it's copied as a static asset.",
+      "category": "bug",
+      "severity": "critical",
+      "fingerprint": "bug|18|css-path-resolution-vite-build",
+      "source": "/pro:bug",
+      "sourceBranch": "fix/css-path-resolution-in-manifest",
+      "createdAt": "2026-02-07T13:10:00Z",
       "status": "in-progress"
     }
   ]

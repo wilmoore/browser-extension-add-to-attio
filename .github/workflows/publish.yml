@@ -1,0 +1,85 @@
+name: Publish to Chrome Web Store
+
+on:
+  # Manual trigger with options
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish after upload (make live immediately)'
+        required: true
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+  # Auto-trigger on version tags
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  publish:
+    name: Build and Publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test:run
+
+      - name: Build extension
+        run: npm run build
+
+      - name: Create ZIP package
+        run: cd dist && zip -r ../dist.zip . && cd ..
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-package
+          path: dist.zip
+          retention-days: 30
+
+      - name: Upload to Chrome Web Store
+        run: |
+          npx chrome-webstore-upload upload \
+            --source dist.zip \
+            --extension-id ${{ secrets.EXTENSION_ID }} \
+            --client-id ${{ secrets.CWS_CLIENT_ID }} \
+            --client-secret ${{ secrets.CWS_CLIENT_SECRET }} \
+            --refresh-token ${{ secrets.CWS_REFRESH_TOKEN }}
+
+      - name: Publish to Chrome Web Store
+        if: github.event_name == 'push' || github.event.inputs.publish == 'true'
+        run: |
+          npx chrome-webstore-upload publish \
+            --extension-id ${{ secrets.EXTENSION_ID }} \
+            --client-id ${{ secrets.CWS_CLIENT_ID }} \
+            --client-secret ${{ secrets.CWS_CLIENT_SECRET }} \
+            --refresh-token ${{ secrets.CWS_REFRESH_TOKEN }}
+
+      - name: Summary
+        run: |
+          echo "## Chrome Web Store Publish Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Extension ID**: \`${{ secrets.EXTENSION_ID }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Upload**: Success" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ github.event_name }}" == "push" ]] || [[ "${{ github.event.inputs.publish }}" == "true" ]]; then
+            echo "- **Publish**: Success (live)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Publish**: Skipped (draft only)" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "[View in Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole)" >> $GITHUB_STEP_SUMMARY
