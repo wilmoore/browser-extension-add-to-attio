@@ -1,5 +1,5 @@
 {
-  "lastSequence": 5,
+  "lastSequence": 6,
   "entries": [
     {
       "branch": "feat/fix-popup-state-display",
@@ -16,6 +16,10 @@
     {
       "branch": "feat/person-first-dropdown-v1",
       "adrs": ["005-person-first-popup-design.md"]
+    },
+    {
+      "branch": "fix/name-attribute-invalid-value",
+      "adrs": ["006-link-existing-person-to-attio-from-popup.md"]
     }
   ]
 }

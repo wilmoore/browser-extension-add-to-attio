@@ -69,7 +69,8 @@
           </div>
           <div class="person-info">
             <div class="person-name-row">
-              <span class="person-name" id="person-name"></span>
+              <a class="person-name" id="person-name"></a>
+              <span class="attio-link-icon hidden" id="attio-link-icon" title="Open in Attio" aria-hidden="true">↗</span>
               <span class="status-badge" id="status-badge"></span>
             </div>
             <span class="person-role" id="person-role"></span>
@@ -84,10 +85,7 @@
             Add Person
           </button>
 
-          <!-- View/Update (existing state) -->
-          <a id="view-btn" href="#" target="_blank" class="btn btn-primary btn-cta hidden">
-            View in Attio
-          </a>
+          <!-- Update (existing state) -->
           <button id="update-btn" class="btn btn-secondary hidden">
             Update Info
           </button>

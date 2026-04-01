@@ -367,6 +367,21 @@ describe('getWorkspaceSlug', () => {
     expect(result).toBe('my-workspace');
   });
 
+  it('returns workspace slug from workspaces array', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        data: {
+          workspaces: [{ slug: 'my-workspace' }],
+        },
+      }),
+    });
+
+    const result = await getWorkspaceSlug('test-key');
+
+    expect(result).toBe('my-workspace');
+  });
+
   it('returns null on error', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
