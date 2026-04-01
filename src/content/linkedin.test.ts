@@ -32,6 +32,30 @@ describe('extractLinkedInProfile', () => {
     expect(result.fullName).toBe('Jane Smith');
   });
 
+  it('extracts name from h2 inside profile link (2026 SDUI layout)', () => {
+    document.body.innerHTML = `
+      <a href="https://www.linkedin.com/in/kimmloy/">
+        <h2>Kim Loy</h2>
+      </a>
+    `;
+
+    const result = extractLinkedInProfile();
+
+    expect(result.fullName).toBe('Kim Loy');
+  });
+
+  it('extracts name from h2 in main section as fallback', () => {
+    document.body.innerHTML = `
+      <main>
+        <h2>Sarah Connor</h2>
+      </main>
+    `;
+
+    const result = extractLinkedInProfile();
+
+    expect(result.fullName).toBe('Sarah Connor');
+  });
+
   it('extracts headline from text-body-medium', () => {
     document.body.innerHTML = `
       <h1 class="text-heading-xlarge">John Doe</h1>
@@ -85,9 +109,9 @@ describe('extractLinkedInProfile', () => {
   it('skips elements with text containing LinkedIn', () => {
     document.body.innerHTML = `
       <h1>LinkedIn</h1>
-      <div class="pv-text-details__left-panel">
+      <main>
         <h1>Real Name</h1>
-      </div>
+      </main>
     `;
 
     const result = extractLinkedInProfile();
@@ -97,10 +121,10 @@ describe('extractLinkedInProfile', () => {
 
   it('skips elements with very short text', () => {
     document.body.innerHTML = `
-      <h1 class="text-heading-xlarge">A</h1>
-      <div class="pv-text-details__left-panel">
+      <h1>A</h1>
+      <main>
         <h1>John Doe</h1>
-      </div>
+      </main>
     `;
 
     const result = extractLinkedInProfile();

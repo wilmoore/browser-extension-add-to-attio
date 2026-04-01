@@ -40,19 +40,18 @@ export const TWITTER_NON_PROFILE_PATHS = [
 ];
 
 // LinkedIn profile selectors (ordered by stability/reliability)
+// Note: LinkedIn uses both h1 and h2 for profile names depending on layout version
 export const LINKEDIN_SELECTORS = {
   name: [
-    'h1.text-heading-xlarge',                    // Current main profile (2024+)
-    '.pv-text-details__left-panel h1',           // Profile details panel
-    '[data-generated-suggestion-target] h1',     // Suggested profile variant
-    'h1[data-anonymize="person-name"]',          // Data attribute variant
-    '.ph5 h1',                                   // Mobile/compact view
-    '.pv-top-card h1',                           // Top card variant
-    '.scaffold-layout__main h1',                 // Layout variant
-    'section.pv-top-card h1',                    // Section variant
-    '.artdeco-card h1',                          // Card container variant
-    'main h1',                                   // Main content h1
-    'h1',                                        // Last resort: first h1
+    // Semantic selectors - name inside profile link is most stable
+    'a[href*="/in/"] h1',                        // h1 inside profile link
+    'a[href*="/in/"] h2',                        // h2 inside profile link (2026+ SDUI)
+    // Fallback to main content headings
+    'main h1',
+    'main h2',
+    // Last resort
+    'h1',
+    'h2',
   ],
   headline: [
     '.text-body-medium.break-words',

@@ -104,7 +104,9 @@ describe('LINKEDIN_SELECTORS', () => {
   it('has name selectors defined', () => {
     expect(LINKEDIN_SELECTORS.name).toBeInstanceOf(Array);
     expect(LINKEDIN_SELECTORS.name.length).toBeGreaterThan(0);
-    expect(LINKEDIN_SELECTORS.name[0]).toBe('h1.text-heading-xlarge');
+    // Should include both h1 and h2 selectors for different LinkedIn layouts
+    expect(LINKEDIN_SELECTORS.name.some(s => s.includes('h1'))).toBe(true);
+    expect(LINKEDIN_SELECTORS.name.some(s => s.includes('h2'))).toBe(true);
   });
 
   it('has headline selectors defined', () => {

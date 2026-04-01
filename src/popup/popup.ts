@@ -138,7 +138,7 @@ const DATA_FIELDS: DataField[] = [
   { key: 'description', icon: '💼', label: 'Role' },
   { key: 'company', icon: '🏢', label: 'Company' },
   { key: 'location', icon: '📍', label: 'Location' },
-  { key: 'linkedinUrl', icon: '🔗', label: 'LinkedIn', format: (v) => v.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//, '') },
+  { key: 'linkedinUrl', icon: '🔗', label: 'LinkedIn', format: (v) => v.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//, '').replace(/\/$/, '') },
   { key: 'twitterHandle', icon: '🐦', label: 'Twitter', format: (v) => `@${v.replace('@', '')}` },
 ];
 

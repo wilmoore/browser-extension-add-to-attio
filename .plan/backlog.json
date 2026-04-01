@@ -1,5 +1,5 @@
 {
-  "lastSequence": 19,
+  "lastSequence": 20,
   "items": [
     {
       "id": 1,
@@ -287,6 +287,18 @@
       "createdAt": "2026-02-07T00:00:00Z",
       "status": "resolved",
       "resolvedAt": "2026-04-01T00:15:00Z"
+    },
+    {
+      "id": 20,
+      "title": "Name extraction returns username instead of display name",
+      "description": "Bug: Adding a new LinkedIn contact fails with 'Invalid request: An invalid value was passed to attribute with slug name'. The popup shows 'Kimmloy' (the username from URL) instead of 'Kim Loy' (the actual name). This causes the Attio API to reject the name value.\n\nRepro steps:\n1. Navigate to linkedin.com/in/kimmloy/\n2. Click extension icon\n3. Click 'Add Person'\n4. Error appears: Invalid value for name attribute\n\nExpected: Name should be 'Kim Loy' (from DOM h1 element)\nActual: Name shows as 'Kimmloy' (from URL username)",
+      "category": "bug",
+      "severity": "critical",
+      "fingerprint": "bug|20|name-extraction-returns-username",
+      "source": "/pro:bug",
+      "sourceBranch": "fix/name-attribute-invalid-value",
+      "createdAt": "2026-04-01T00:20:00Z",
+      "status": "in-progress"
     }
   ]
 }
