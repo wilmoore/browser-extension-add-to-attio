@@ -44,11 +44,72 @@ export function extractLinkedInProfile(): ProfileData {
       }
     }
 
+    // Get avatar URL from profile image
+    let avatarUrl: string | null = null;
+    for (const selector of LINKEDIN_SELECTORS.avatar) {
+      const element = document.querySelector(selector) as HTMLImageElement | null;
+      if (element?.src && !element.src.includes('ghost')) {
+        avatarUrl = element.src;
+        log.linkedin('Found avatar with selector: %s', selector);
+        break;
+      }
+    }
+
+    // Get location from profile header
+    let location: string | null = null;
+    for (const selector of LINKEDIN_SELECTORS.location) {
+      const element = document.querySelector(selector);
+      const text = element?.textContent?.trim();
+      if (text && text.length > 1) {
+        location = text;
+        log.linkedin('Found location with selector: %s -> %s', selector, location);
+        break;
+      }
+    }
+
+    // Extract company from headline (typically "Title at Company")
+    let company: string | null = null;
+    if (headline) {
+      // Common patterns: "Title at Company", "Role @ Company", "Title | Company"
+      const companyMatch = headline.match(/(?:at|@|\|)\s+(.+?)(?:\s*[·•|]|$)/i);
+      if (companyMatch) {
+        company = companyMatch[1].trim();
+        log.linkedin('Extracted company from headline: %s', company);
+      }
+    }
+
+    // Detect connection degree from profile badges
+    let connectionDegree: string | null = null;
+    const connectionBadge = document.querySelector('.dist-value, .distance-badge, [class*="connection-degree"]');
+    if (connectionBadge) {
+      const badgeText = connectionBadge.textContent?.trim();
+      if (badgeText?.match(/^(1st|2nd|3rd)$/i)) {
+        connectionDegree = badgeText;
+        log.linkedin('Found connection degree: %s', connectionDegree);
+      }
+    }
+
+    // Detect if Contact Info link is visible (available for 1st degree connections)
+    let hasContactInfo = false;
+    for (const selector of LINKEDIN_SELECTORS.contactInfoLink) {
+      const element = document.querySelector(selector);
+      if (element) {
+        hasContactInfo = true;
+        log.linkedin('Contact info link found with selector: %s', selector);
+        break;
+      }
+    }
+
     log.linkedin('Extracted profile data: %O', {
       fullName,
       username,
       profileUrl,
       headline: headline?.substring(0, 50) + (headline && headline.length > 50 ? '...' : ''),
+      avatarUrl: avatarUrl ? '[present]' : null,
+      location,
+      company,
+      connectionDegree,
+      hasContactInfo,
     });
 
     // Validate we have minimum required data
@@ -77,6 +138,11 @@ export function extractLinkedInProfile(): ProfileData {
       linkedinUrl: profileUrl,
       username: username ?? undefined,
       description: headline ?? undefined,
+      avatarUrl: avatarUrl ?? undefined,
+      company: company ?? undefined,
+      location: location ?? undefined,
+      connectionDegree: connectionDegree ?? undefined,
+      hasContactInfo,
     };
   } catch (error) {
     log.linkedin('Extraction error: %O', error);

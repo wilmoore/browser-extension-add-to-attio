@@ -1,5 +1,5 @@
 {
-  "lastSequence": 18,
+  "lastSequence": 19,
   "items": [
     {
       "id": 1,
@@ -273,6 +273,18 @@
       "source": "/pro:bug",
       "sourceBranch": "fix/css-path-resolution-in-manifest",
       "createdAt": "2026-02-07T13:10:00Z",
+      "status": "in-progress"
+    },
+    {
+      "id": 19,
+      "title": "Person-first dropdown redesign (v1)",
+      "description": "Redesign the popup dropdown to present a person-first, high-signal, minimal UI. Structural UI change only - no enrichment logic or new API calls. Includes: Header with avatar/name/role/status, Primary CTA, Data Preview, Object Mapping display, and Footer.",
+      "category": "feature",
+      "severity": "medium",
+      "fingerprint": "feature|19|person-first-dropdown-v1",
+      "source": "/pro:feature",
+      "sourceBranch": "feat/person-first-dropdown-v1",
+      "createdAt": "2026-02-07T00:00:00Z",
       "status": "in-progress"
     }
   ]

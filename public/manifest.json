@@ -1,11 +1,17 @@
 {
   "manifest_version": 3,
   "name": "Add to Attio",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Capture LinkedIn, X, and Reddit profiles and add them to Attio",
   "homepage_url": "https://github.com/wilmoore/add-to-attio",
-  "permissions": ["activeTab", "storage", "tabs"],
-  "host_permissions": ["https://api.attio.com/*"],
+  "permissions": [
+    "activeTab",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://api.attio.com/*"
+  ],
   "action": {
     "default_popup": "src/popup/popup.html",
     "default_icon": {
@@ -29,24 +35,36 @@
         "https://www.linkedin.com/in/*",
         "https://linkedin.com/in/*"
       ],
-      "js": ["src/content/linkedin.ts"],
-      "css": ["styles/feedback.css"]
+      "js": [
+        "src/content/linkedin.ts"
+      ],
+      "css": [
+        "styles/feedback.css"
+      ]
     },
     {
       "matches": [
         "https://x.com/*",
         "https://twitter.com/*"
       ],
-      "js": ["src/content/twitter.ts"],
-      "css": ["styles/feedback.css"]
+      "js": [
+        "src/content/twitter.ts"
+      ],
+      "css": [
+        "styles/feedback.css"
+      ]
     },
     {
       "matches": [
         "https://www.reddit.com/user/*",
         "https://reddit.com/user/*"
       ],
-      "js": ["src/content/reddit.ts"],
-      "css": ["styles/feedback.css"]
+      "js": [
+        "src/content/reddit.ts"
+      ],
+      "css": [
+        "styles/feedback.css"
+      ]
     }
   ]
 }

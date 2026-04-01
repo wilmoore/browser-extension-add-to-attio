@@ -60,6 +60,28 @@ export const LINKEDIN_SELECTORS = {
     '.pv-top-card--list .text-body-medium',
     '.pv-top-card .pv-top-card--photo-resize + div + div',
   ],
+  // Profile avatar selectors
+  avatar: [
+    'img.pv-top-card-profile-picture__image--show',
+    'img.pv-top-card__photo',
+    '.pv-top-card__photo-wrapper img',
+    'img[data-anonymous="profile-photo"]',
+    '.presence-entity__image',
+    'img.profile-photo-edit__preview',
+  ],
+  // Location selectors (e.g., "Denver Metropolitan Area")
+  location: [
+    '.text-body-small.inline.t-black--light.break-words',
+    '[data-anonymize="location"]',
+    '.pv-top-card--list-bullet .text-body-small',
+    '.pv-top-card__location',
+  ],
+  // Contact info link (to detect if visible for 1st degree connections)
+  contactInfoLink: [
+    'a[href="#"][data-control-name="contact_see_more"]',
+    'a#top-card-text-details-contact-info',
+    'a[href*="overlay/contact-info"]',
+  ],
 };
 
 // Twitter/X profile selectors

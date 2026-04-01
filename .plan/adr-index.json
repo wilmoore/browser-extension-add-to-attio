@@ -1,5 +1,5 @@
 {
-  "lastSequence": 4,
+  "lastSequence": 5,
   "entries": [
     {
       "branch": "feat/fix-popup-state-display",
@@ -12,6 +12,10 @@
     {
       "branch": "fix/css-path-resolution-in-manifest",
       "adrs": ["004-typescript-test-driven-architecture.md"]
+    },
+    {
+      "branch": "feat/person-first-dropdown-v1",
+      "adrs": ["005-person-first-popup-design.md"]
     }
   ]
 }

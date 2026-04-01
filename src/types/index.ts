@@ -15,6 +15,12 @@ export interface ProfileData {
   description?: string | null;
   profileUrl?: string;
   error?: string;
+  // Extended fields for person-first dropdown (v1)
+  avatarUrl?: string;           // Profile photo URL
+  company?: string;             // Current company name
+  location?: string;            // Location text (visible on page)
+  connectionDegree?: string;    // "1st", "2nd", "3rd" or null
+  hasContactInfo?: boolean;     // Whether Contact Info link is visible
 }
 
 // Attio person record (simplified for extension use)
@@ -69,8 +75,14 @@ export interface AttioRecordValues {
 }
 
 // Values object for Attio API create/update
+// Note: Attio requires all three name properties when using object syntax
+// See: https://docs.attio.com/docs/attribute-types/attribute-types-personal-name
 export interface AttioValuesInput {
-  name?: Array<{ full_name: string }>;
+  name?: Array<{
+    first_name: string;
+    last_name: string;
+    full_name: string;
+  }>;
   linkedin?: Array<{ value: string }>;
   twitter?: Array<{ value: string }>;
   description?: Array<{ value: string }>;
