@@ -87,3 +87,7 @@ Add validation before API call to prevent invalid name formats
 - [x] New tests cover h2 selector and anchor pattern
 - [x] Build succeeds
 - [x] Person successfully added to Attio
+
+## Relevant ADRs
+
+- [ADR-006: Link Existing Person to Attio from Popup](../../doc/decisions/006-link-existing-person-to-attio-from-popup.md)

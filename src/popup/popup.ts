@@ -23,7 +23,8 @@ const noProfileState = document.getElementById('no-profile-state') as HTMLElemen
 const profileState = document.getElementById('profile-state') as HTMLElement;
 
 // DOM Elements - Person Header
-const personName = document.getElementById('person-name') as HTMLElement;
+const personName = document.getElementById('person-name') as HTMLAnchorElement;
+const attioLinkIcon = document.getElementById('attio-link-icon') as HTMLElement;
 const personRole = document.getElementById('person-role') as HTMLElement;
 const personCompany = document.getElementById('person-company') as HTMLElement;
 const statusBadge = document.getElementById('status-badge') as HTMLElement;
@@ -32,7 +33,6 @@ const avatarPlaceholder = document.querySelector('.avatar-placeholder') as HTMLE
 
 // DOM Elements - CTAs
 const captureBtn = document.getElementById('capture-btn') as HTMLButtonElement;
-const viewBtn = document.getElementById('view-btn') as HTMLAnchorElement;
 const updateBtn = document.getElementById('update-btn') as HTMLButtonElement;
 
 // DOM Elements - Data Preview
@@ -47,6 +47,24 @@ let currentPlatform: Platform | null = null;
 let currentTabId: number | null = null;
 let currentProfileData: ProfileData | null = null;
 let currentAttioUrl: string | null = null;
+
+function setAttioPersonLink(attioUrl: string | null): void {
+  if (attioUrl) {
+    personName.href = attioUrl;
+    personName.target = '_blank';
+    personName.rel = 'noopener';
+    personName.title = 'Open in Attio';
+    attioLinkIcon.classList.remove('hidden');
+    return;
+  }
+
+  // No Attio URL available: render name as plain text (non-link).
+  personName.removeAttribute('href');
+  personName.removeAttribute('target');
+  personName.removeAttribute('rel');
+  personName.removeAttribute('title');
+  attioLinkIcon.classList.add('hidden');
+}
 
 interface DetectedPlatform {
   key: Platform;
@@ -229,18 +247,15 @@ function showProfileState(isExisting: boolean, attioUrl: string | null): void {
 
   // Reset all CTAs
   captureBtn.classList.add('hidden');
-  viewBtn.classList.add('hidden');
   updateBtn.classList.add('hidden');
 
   if (isExisting) {
-    // Existing person - show View and Update buttons
-    if (attioUrl) {
-      viewBtn.href = attioUrl;
-      viewBtn.classList.remove('hidden');
-    }
+    // Existing person: hyperlink the person's name to Attio when possible.
+    setAttioPersonLink(attioUrl);
     updateBtn.classList.remove('hidden');
     updateButtonText(currentProfileData ?? undefined);
   } else {
+    setAttioPersonLink(null);
     // New person - show Add button
     captureBtn.classList.remove('hidden');
   }

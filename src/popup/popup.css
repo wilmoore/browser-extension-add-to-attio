@@ -293,6 +293,23 @@ hr {
   font-weight: 600;
   color: #1a1a2e;
   font-size: 15px;
+  text-decoration: none;
+}
+
+.person-name[href]:hover {
+  text-decoration: underline;
+}
+
+.person-name:focus-visible {
+  outline: 2px solid rgba(21, 101, 192, 0.5);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.attio-link-icon {
+  font-size: 12px;
+  color: #1565c0;
+  user-select: none;
 }
 
 .status-badge {

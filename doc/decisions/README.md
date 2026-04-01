@@ -23,3 +23,4 @@ We use the [Michael Nygard format](https://cognitect.com/blog/2011/11/15/documen
 - [003. Two-Step Upsert Pattern for Person Records](003-two-step-upsert-pattern.md)
 - [004. TypeScript Test-Driven Architecture with Debug Package](004-typescript-test-driven-architecture.md)
 - [005. Person-First Popup Design](005-person-first-popup-design.md)
+- [006. Link Existing Person to Attio from Popup](006-link-existing-person-to-attio-from-popup.md)

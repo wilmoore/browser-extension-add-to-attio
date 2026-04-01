@@ -313,12 +313,10 @@ export async function findPersonByAttribute(
   return null;
 }
 
-interface WorkspaceResponse {
-  data?: {
-    workspace?: {
-      slug?: string;
-    };
-  };
+type UnknownRecord = Record<string, unknown>;
+
+function isRecord(value: unknown): value is UnknownRecord {
+  return !!value && typeof value === 'object';
 }
 
 /**
@@ -335,13 +333,37 @@ export async function getWorkspaceSlug(apiKey: string): Promise<string | null> {
     });
 
     if (response.ok) {
-      const data = await response.json() as WorkspaceResponse;
-      const slug = data.data?.workspace?.slug || null;
+      const data = await response.json() as unknown;
+      const dataObj = isRecord(data) ? (data.data as unknown) : null;
+      const root = isRecord(dataObj) ? dataObj : null;
+
+      const workspace = root && isRecord(root.workspace) ? (root.workspace as UnknownRecord) : null;
+      const workspaces0 = root && Array.isArray(root.workspaces) && isRecord(root.workspaces[0])
+        ? (root.workspaces[0] as UnknownRecord)
+        : null;
+      const userWorkspace = root && isRecord(root.user) && isRecord((root.user as UnknownRecord).workspace)
+        ? ((root.user as UnknownRecord).workspace as UnknownRecord)
+        : null;
+      const meWorkspace = root && isRecord(root.me) && isRecord((root.me as UnknownRecord).workspace)
+        ? ((root.me as UnknownRecord).workspace as UnknownRecord)
+        : null;
+
+      // Attio's /self response shape can vary; try a few known patterns.
+      const candidates = [
+        workspace?.slug,
+        workspaces0?.slug,
+        userWorkspace?.slug,
+        meWorkspace?.slug,
+        root?.workspace_slug,
+        root?.workspaceSlug,
+      ];
+
+      const slug = candidates.find((v) => typeof v === 'string' && v.length > 0) as string | undefined;
       log.api('getWorkspaceSlug result: %O', {
-        slug,
-        workspaceData: data.data?.workspace,
+        slug: slug || null,
+        availableKeys: root ? Object.keys(root) : null,
       });
-      return slug;
+      return slug || null;
     }
     log.api('getWorkspaceSlug failed: %d', response.status);
     return null;
