@@ -10,6 +10,7 @@ import {
   findPersonByAttribute,
   getWorkspaceSlug,
   validateApiKey,
+  parseName,
 } from './attio-api.js';
 
 // Mock fetch globally
@@ -18,6 +19,71 @@ vi.stubGlobal('fetch', mockFetch);
 
 beforeEach(() => {
   mockFetch.mockReset();
+});
+
+describe('parseName', () => {
+  it('parses two-part names', () => {
+    expect(parseName('John Smith')).toEqual({
+      firstName: 'John',
+      lastName: 'Smith',
+    });
+  });
+
+  it('parses single name as first name', () => {
+    expect(parseName('John')).toEqual({
+      firstName: 'John',
+      lastName: '',
+    });
+  });
+
+  it('parses three-part names with middle name', () => {
+    expect(parseName('John Paul Smith')).toEqual({
+      firstName: 'John Paul',
+      lastName: 'Smith',
+    });
+  });
+
+  it('parses hyphenated last names', () => {
+    expect(parseName('Mary Jane Watson-Parker')).toEqual({
+      firstName: 'Mary Jane',
+      lastName: 'Watson-Parker',
+    });
+  });
+
+  it('handles empty string', () => {
+    expect(parseName('')).toEqual({
+      firstName: '',
+      lastName: '',
+    });
+  });
+
+  it('handles whitespace-only string', () => {
+    expect(parseName('   ')).toEqual({
+      firstName: '',
+      lastName: '',
+    });
+  });
+
+  it('handles extra whitespace between names', () => {
+    expect(parseName('John   Smith')).toEqual({
+      firstName: 'John',
+      lastName: 'Smith',
+    });
+  });
+
+  it('trims leading and trailing whitespace', () => {
+    expect(parseName('  John Smith  ')).toEqual({
+      firstName: 'John',
+      lastName: 'Smith',
+    });
+  });
+
+  it('handles names with parenthetical nicknames', () => {
+    expect(parseName('Kathleen (Kat) Brandt')).toEqual({
+      firstName: 'Kathleen (Kat)',
+      lastName: 'Brandt',
+    });
+  });
 });
 
 describe('AttioApiError', () => {
@@ -38,7 +104,7 @@ describe('AttioApiError', () => {
 });
 
 describe('createPerson', () => {
-  it('sends POST request with correct body', async () => {
+  it('sends POST request with correct body including all name parts', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({ data: { id: { record_id: '123' } } }),
@@ -60,7 +126,11 @@ describe('createPerson', () => {
         body: JSON.stringify({
           data: {
             values: {
-              name: [{ full_name: 'John Doe' }],
+              name: [{
+                first_name: 'John',
+                last_name: 'Doe',
+                full_name: 'John Doe',
+              }],
               linkedin: [{ value: 'https://linkedin.com/in/johndoe' }],
             },
           },
@@ -107,7 +177,7 @@ describe('createPerson', () => {
 });
 
 describe('updatePerson', () => {
-  it('sends PATCH request with correct body', async () => {
+  it('sends PATCH request with correct body including all name parts', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({ data: { id: { record_id: '123' } } }),
@@ -125,8 +195,43 @@ describe('updatePerson', () => {
         body: JSON.stringify({
           data: {
             values: {
-              name: [{ full_name: 'John Doe Updated' }],
+              name: [{
+                first_name: 'John Doe',
+                last_name: 'Updated',
+                full_name: 'John Doe Updated',
+              }],
               description: [{ value: 'New headline' }],
+            },
+          },
+        }),
+      })
+    );
+  });
+
+  it('handles names with multiple parts correctly', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ data: { id: { record_id: '123' } } }),
+    });
+
+    await updatePerson('test-api-key', 'record-123', {
+      fullName: 'Mike Brevoort',
+      description: 'Principal Architect at Mytra',
+    });
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        method: 'PATCH',
+        body: JSON.stringify({
+          data: {
+            values: {
+              name: [{
+                first_name: 'Mike',
+                last_name: 'Brevoort',
+                full_name: 'Mike Brevoort',
+              }],
+              description: [{ value: 'Principal Architect at Mytra' }],
             },
           },
         }),

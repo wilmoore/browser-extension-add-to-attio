@@ -7,35 +7,46 @@ import { setApiKey, clearApiKey, isAuthenticated } from '../lib/storage.js';
 import { validateApiKey } from '../lib/attio-api.js';
 import { log } from '../lib/logger.js';
 import { SUPPORTED_PLATFORMS } from '../constants/index.js';
-import type { Platform, CheckPersonResponse, CaptureResponse } from '../types/index.js';
+import type { Platform, ProfileData, CheckPersonResponse, CaptureResponse } from '../types/index.js';
 
-// DOM Elements
+// DOM Elements - Auth Section
 const authSection = document.getElementById('auth-section') as HTMLElement;
 const connectedSection = document.getElementById('connected-section') as HTMLElement;
 const authForm = document.getElementById('auth-form') as HTMLFormElement;
 const apiKeyInput = document.getElementById('api-key') as HTMLInputElement;
 const connectBtn = document.getElementById('connect-btn') as HTMLButtonElement;
-const disconnectBtn = document.getElementById('disconnect-btn') as HTMLButtonElement;
 const messageEl = document.getElementById('message') as HTMLElement;
 
-// Capture section states
+// DOM Elements - State containers
 const loadingState = document.getElementById('loading-state') as HTMLElement;
 const noProfileState = document.getElementById('no-profile-state') as HTMLElement;
-const existsState = document.getElementById('exists-state') as HTMLElement;
-const newState = document.getElementById('new-state') as HTMLElement;
+const profileState = document.getElementById('profile-state') as HTMLElement;
 
-// Exists state elements
+// DOM Elements - Person Header
 const personName = document.getElementById('person-name') as HTMLElement;
+const personRole = document.getElementById('person-role') as HTMLElement;
+const personCompany = document.getElementById('person-company') as HTMLElement;
+const statusBadge = document.getElementById('status-badge') as HTMLElement;
+const avatarImage = document.getElementById('avatar-image') as HTMLImageElement;
+const avatarPlaceholder = document.querySelector('.avatar-placeholder') as HTMLElement;
+
+// DOM Elements - CTAs
+const captureBtn = document.getElementById('capture-btn') as HTMLButtonElement;
 const viewBtn = document.getElementById('view-btn') as HTMLAnchorElement;
 const updateBtn = document.getElementById('update-btn') as HTMLButtonElement;
 
-// New state elements
-const captureBtn = document.getElementById('capture-btn') as HTMLButtonElement;
-const pageStatus = document.getElementById('page-status') as HTMLElement;
+// DOM Elements - Data Preview
+const dataList = document.getElementById('data-list') as HTMLUListElement;
+
+// DOM Elements - Disconnect buttons (multiple locations)
+const disconnectBtn = document.getElementById('disconnect-btn') as HTMLButtonElement;
+const disconnectBtnNoProfile = document.getElementById('disconnect-btn-no-profile') as HTMLButtonElement;
 
 // Current context
 let currentPlatform: Platform | null = null;
 let currentTabId: number | null = null;
+let currentProfileData: ProfileData | null = null;
+let currentAttioUrl: string | null = null;
 
 interface DetectedPlatform {
   key: Platform;
@@ -44,17 +55,16 @@ interface DetectedPlatform {
 }
 
 /**
- * Hide all capture states
+ * Hide all state containers
  */
 function hideAllStates(): void {
   loadingState.classList.add('hidden');
   noProfileState.classList.add('hidden');
-  existsState.classList.add('hidden');
-  newState.classList.add('hidden');
+  profileState.classList.add('hidden');
 }
 
 /**
- * Show a specific state
+ * Show a specific state container
  */
 function showState(stateEl: HTMLElement): void {
   hideAllStates();
@@ -81,6 +91,159 @@ function showMessage(text: string, type: 'info' | 'success' | 'error' = 'info'):
  */
 function hideMessage(): void {
   messageEl.classList.add('hidden');
+}
+
+/**
+ * Count available fields from profile data that can be updated
+ */
+function countUpdatableFields(profileData: ProfileData | undefined): number {
+  if (!profileData) return 0;
+
+  let count = 0;
+  if (profileData.fullName) count++;
+  if (profileData.linkedinUrl) count++;
+  if (profileData.twitterHandle) count++;
+  if (profileData.description) count++;
+
+  return count;
+}
+
+/**
+ * Update the "Update Info" button text to show what will be updated
+ */
+function updateButtonText(profileData: ProfileData | undefined): void {
+  const fieldCount = countUpdatableFields(profileData);
+
+  if (fieldCount > 0) {
+    updateBtn.textContent = `Update ${fieldCount} field${fieldCount > 1 ? 's' : ''}`;
+    updateBtn.disabled = false;
+  } else {
+    updateBtn.textContent = 'No updates available';
+    updateBtn.disabled = true;
+  }
+}
+
+/**
+ * Data field configuration for the data preview list
+ */
+interface DataField {
+  key: keyof ProfileData;
+  icon: string;
+  label: string;
+  format?: (value: string) => string;
+}
+
+const DATA_FIELDS: DataField[] = [
+  { key: 'fullName', icon: '👤', label: 'Name' },
+  { key: 'description', icon: '💼', label: 'Role' },
+  { key: 'company', icon: '🏢', label: 'Company' },
+  { key: 'location', icon: '📍', label: 'Location' },
+  { key: 'linkedinUrl', icon: '🔗', label: 'LinkedIn', format: (v) => v.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//, '') },
+  { key: 'twitterHandle', icon: '🐦', label: 'Twitter', format: (v) => `@${v.replace('@', '')}` },
+];
+
+/**
+ * Populate the data preview list with available fields
+ */
+function populateDataPreview(profileData: ProfileData | null): void {
+  dataList.innerHTML = '';
+
+  if (!profileData) {
+    return;
+  }
+
+  for (const field of DATA_FIELDS) {
+    const value = profileData[field.key];
+    if (value && typeof value === 'string') {
+      const displayValue = field.format ? field.format(value) : value;
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <span class="data-icon">${field.icon}</span>
+        <span class="data-label">${field.label}</span>
+        <span class="data-value" title="${displayValue}">${displayValue}</span>
+      `;
+      dataList.appendChild(li);
+    }
+  }
+
+  // Add Contact Info indicator if available
+  if (profileData.hasContactInfo) {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <span class="data-icon">📋</span>
+      <span class="data-label">Contact</span>
+      <span class="data-value">Available (1st connection)</span>
+    `;
+    dataList.appendChild(li);
+  }
+}
+
+/**
+ * Update the person header with profile data
+ */
+function updatePersonHeader(profileData: ProfileData, isExisting: boolean): void {
+  // Set name
+  personName.textContent = profileData.fullName || 'Unknown';
+
+  // Set role (description/headline)
+  if (profileData.description) {
+    personRole.textContent = profileData.description;
+    personRole.classList.remove('hidden');
+  } else {
+    personRole.classList.add('hidden');
+  }
+
+  // Set company
+  if (profileData.company) {
+    personCompany.textContent = profileData.company;
+    personCompany.classList.remove('hidden');
+  } else {
+    personCompany.classList.add('hidden');
+  }
+
+  // Set status badge
+  if (isExisting) {
+    statusBadge.textContent = 'Existing';
+    statusBadge.className = 'status-badge existing';
+  } else {
+    statusBadge.textContent = 'New';
+    statusBadge.className = 'status-badge new';
+  }
+
+  // Set avatar
+  if (profileData.avatarUrl) {
+    avatarImage.src = profileData.avatarUrl;
+    avatarImage.classList.remove('hidden');
+    avatarPlaceholder.classList.add('hidden');
+  } else {
+    avatarImage.classList.add('hidden');
+    avatarPlaceholder.classList.remove('hidden');
+  }
+}
+
+/**
+ * Show the profile state with appropriate CTAs
+ */
+function showProfileState(isExisting: boolean, attioUrl: string | null): void {
+  showState(profileState);
+
+  // Reset all CTAs
+  captureBtn.classList.add('hidden');
+  viewBtn.classList.add('hidden');
+  updateBtn.classList.add('hidden');
+
+  if (isExisting) {
+    // Existing person - show View and Update buttons
+    if (attioUrl) {
+      viewBtn.href = attioUrl;
+      viewBtn.classList.remove('hidden');
+    }
+    updateBtn.classList.remove('hidden');
+    updateButtonText(currentProfileData ?? undefined);
+  } else {
+    // New person - show Add button
+    captureBtn.classList.remove('hidden');
+  }
 }
 
 /**
@@ -170,28 +333,18 @@ async function checkCurrentPage(): Promise<void> {
       personName: response.person?.name,
     });
 
-    if (response.exists && response.person) {
-      // Person already in Attio
-      personName.textContent = response.person.name || 'Unknown';
+    // Store profile data and Attio URL for updates
+    currentProfileData = response.profileData || null;
+    currentAttioUrl = response.person?.attioUrl || null;
 
-      if (response.person.attioUrl) {
-        viewBtn.href = response.person.attioUrl;
-        viewBtn.classList.remove('hidden');
-      } else {
-        viewBtn.classList.add('hidden');
-      }
-
-      showState(existsState);
-    } else if (response.exists && !response.person) {
-      // Person exists but we couldn't get their details - still show exists state
-      log.popup('Person exists but person data missing');
-      personName.textContent = 'Unknown';
-      viewBtn.classList.add('hidden');
-      showState(existsState);
+    // Update person header with extracted profile data
+    if (response.profileData) {
+      updatePersonHeader(response.profileData, response.exists);
+      populateDataPreview(response.profileData);
+      showProfileState(response.exists, currentAttioUrl);
     } else {
-      // Person not in Attio
-      pageStatus.textContent = `Ready to capture ${platform.name} profile.`;
-      showState(newState);
+      // No profile data extracted - show no profile state
+      showState(noProfileState);
     }
   } catch (error) {
     log.popup('Error checking page: %O', error);
@@ -292,6 +445,11 @@ async function handleUpdate(): Promise<void> {
     return;
   }
 
+  log.popup('Updating with profile data: %O', {
+    name: currentProfileData?.fullName,
+    fieldsCount: countUpdatableFields(currentProfileData ?? undefined),
+  });
+
   updateBtn.disabled = true;
   updateBtn.classList.add('loading');
   hideMessage();
@@ -321,6 +479,7 @@ async function handleUpdate(): Promise<void> {
 // Event Listeners
 authForm.addEventListener('submit', handleConnect);
 disconnectBtn.addEventListener('click', handleDisconnect);
+disconnectBtnNoProfile.addEventListener('click', handleDisconnect);
 captureBtn.addEventListener('click', handleCapture);
 updateBtn.addEventListener('click', handleUpdate);
 

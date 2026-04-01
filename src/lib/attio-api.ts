@@ -29,13 +29,52 @@ export class AttioApiError extends Error {
 }
 
 /**
+ * Parse a full name into first name and last name components
+ * Handles various formats:
+ * - "John Smith" -> { firstName: "John", lastName: "Smith" }
+ * - "John" -> { firstName: "John", lastName: "" }
+ * - "John Paul Smith" -> { firstName: "John Paul", lastName: "Smith" }
+ * - "Mary Jane Watson-Parker" -> { firstName: "Mary Jane", lastName: "Watson-Parker" }
+ */
+export function parseName(fullName: string): { firstName: string; lastName: string } {
+  const trimmed = fullName.trim();
+
+  if (!trimmed) {
+    return { firstName: '', lastName: '' };
+  }
+
+  // Split by whitespace
+  const parts = trimmed.split(/\s+/);
+
+  if (parts.length === 1) {
+    // Single name - treat as first name
+    return { firstName: parts[0], lastName: '' };
+  }
+
+  // Last part is the last name, everything else is first name
+  const lastName = parts[parts.length - 1];
+  const firstName = parts.slice(0, -1).join(' ');
+
+  return { firstName, lastName };
+}
+
+/**
  * Build values object from person data for Attio API
+ *
+ * Note: Attio requires all three name properties (first_name, last_name, full_name)
+ * when using object syntax for the name attribute.
+ * See: https://docs.attio.com/docs/attribute-types/attribute-types-personal-name
  */
 function buildValuesObject(personData: ProfileData): AttioValuesInput {
   const values: AttioValuesInput = {};
 
   if (personData.fullName) {
-    values.name = [{ full_name: personData.fullName }];
+    const { firstName, lastName } = parseName(personData.fullName);
+    values.name = [{
+      first_name: firstName,
+      last_name: lastName,
+      full_name: personData.fullName,
+    }];
   }
 
   if (personData.linkedinUrl) {
