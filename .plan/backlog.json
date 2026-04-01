@@ -285,7 +285,8 @@
       "source": "/pro:feature",
       "sourceBranch": "feat/person-first-dropdown-v1",
       "createdAt": "2026-02-07T00:00:00Z",
-      "status": "in-progress"
+      "status": "resolved",
+      "resolvedAt": "2026-04-01T00:15:00Z"
     }
   ]
 }
