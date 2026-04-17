@@ -1,0 +1,12 @@
+{
+  "attempts": [
+    {
+      "timestamp": "2026-04-16T13:16:26Z",
+      "tool": "Bash",
+      "error": "npm run build 2>&1",
+      "status": "unresolved"
+    }
+  ],
+  "strikeCount": 1,
+  "lastErrorHash": "b5ada2d5"
+}
