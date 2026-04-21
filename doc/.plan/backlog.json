@@ -1,0 +1,17 @@
+{
+  "lastSequence": 1,
+  "items": [
+    {
+      "id": 1,
+      "title": "Refactor Add to Attio sheet to diff-based UI",
+      "description": "Refactor the popup sheet UI to remove redundant sections/buttons, introduce field-level diffing with per-field Update/Skip, improve user-friendly errors while preserving debug detail, and align copy/i18n + TypeScript types with project standards.",
+      "category": "debt",
+      "severity": "medium",
+      "fingerprint": "debt|1|refactor-add-to-attio-sheet-diff-based-ui",
+      "source": "/pro:refactor",
+      "sourceBranch": "refactor/add-to-attio-sheet-diff-based-ui",
+      "createdAt": "2026-04-01T07:28:02Z",
+      "status": "in-progress"
+    }
+  ]
+}

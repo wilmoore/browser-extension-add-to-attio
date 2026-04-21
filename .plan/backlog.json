@@ -1,6 +1,18 @@
 {
-  "lastSequence": 20,
+  "lastSequence": 21,
   "items": [
+    {
+      "id": 21,
+      "title": "Existing contact badge UX issues",
+      "description": "Bug: For existing Attio contacts, the extension badge and popup have UX issues:\n\n1. Orange badge on extension icon is ugly - should be a more subtle/professional indicator\n2. Popup shows 'Content script not ready' error instead of contact info\n3. No link to view the contact in Attio from the popup\n4. No actionable items when contact already exists\n\nRepro steps:\n1. Navigate to a LinkedIn profile that exists in Attio\n2. Click the extension icon\n3. Observe the orange badge and popup state\n\nExpected: Professional badge indicator, link to Attio contact, clear actionable options\nActual: Ugly orange badge, error message, no actions available",
+      "category": "bug",
+      "severity": "high",
+      "fingerprint": "bug|21|existing-contact-badge-ux",
+      "source": "/pro:bug",
+      "sourceBranch": "fix/existing-contact-badge-ux",
+      "createdAt": "2026-04-16T00:00:00Z",
+      "status": "in-progress"
+    },
     {
       "id": 1,
       "title": "Social surface capture",
@@ -261,7 +273,8 @@
       "source": "/pro:feature",
       "sourceBranch": "feat/fix-popup-state-display",
       "createdAt": "2026-02-06T18:50:00Z",
-      "status": "in-progress"
+      "status": "resolved",
+      "resolvedAt": "2026-04-01T00:00:00Z"
     },
     {
       "id": 18,
@@ -273,7 +286,8 @@
       "source": "/pro:bug",
       "sourceBranch": "fix/css-path-resolution-in-manifest",
       "createdAt": "2026-02-07T13:10:00Z",
-      "status": "in-progress"
+      "status": "resolved",
+      "resolvedAt": "2026-04-01T00:00:00Z"
     },
     {
       "id": 19,
@@ -298,7 +312,8 @@
       "source": "/pro:bug",
       "sourceBranch": "fix/name-attribute-invalid-value",
       "createdAt": "2026-04-01T00:20:00Z",
-      "status": "in-progress"
+      "status": "resolved",
+      "resolvedAt": "2026-04-01T01:00:00Z"
     }
   ]
 }

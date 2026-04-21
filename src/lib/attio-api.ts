@@ -167,6 +167,37 @@ export async function updatePerson(apiKey: string, recordId: string, personData:
 }
 
 /**
+ * Patch an existing person record with a pre-built values payload.
+ * Used for field-level updates from the popup diff UI.
+ */
+export async function patchPersonValues(
+  apiKey: string,
+  recordId: string,
+  values: AttioValuesInput
+): Promise<AttioRecordResponse> {
+  const url = `${ATTIO_API_BASE}/objects/people/records/${recordId}`;
+
+  log.api('Patching person values: %O', { url, recordId, values });
+
+  const response = await fetch(url, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      data: { values },
+    }),
+  });
+
+  if (!response.ok) {
+    await handleApiError(response);
+  }
+
+  return response.json();
+}
+
+/**
  * Get the search value from person data based on platform
  */
 function getSearchValue(platform: Platform, personData: ProfileData): string | null {
@@ -334,8 +365,9 @@ export async function getWorkspaceSlug(apiKey: string): Promise<string | null> {
 
     if (response.ok) {
       const data = await response.json() as unknown;
-      const dataObj = isRecord(data) ? (data.data as unknown) : null;
-      const root = isRecord(dataObj) ? dataObj : null;
+      const top = isRecord(data) ? data : null;
+      const dataObj = top ? top.data : null;
+      const root = isRecord(dataObj) ? dataObj : top;
 
       const workspace = root && isRecord(root.workspace) ? (root.workspace as UnknownRecord) : null;
       const workspaces0 = root && Array.isArray(root.workspaces) && isRecord(root.workspaces[0])

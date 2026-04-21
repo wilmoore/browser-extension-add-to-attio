@@ -9,15 +9,15 @@
 <body>
   <div class="container">
     <header>
-      <h1>Add to Attio</h1>
+      <h1 id="popup-title">Add to Attio</h1>
     </header>
 
     <!-- Auth Form (shown when not connected) -->
     <div id="auth-section" class="section hidden">
-      <p class="description">Enter your Attio API key to get started.</p>
+      <p class="description" id="auth-description">Enter your Attio API key to get started.</p>
       <form id="auth-form">
         <div class="form-group">
-          <label for="api-key">API Key</label>
+          <label for="api-key" id="api-key-label">API Key</label>
           <input
             type="password"
             id="api-key"
@@ -33,7 +33,7 @@
       </form>
       <p class="help-text">
         <a href="https://attio.com/help/apps/other-apps/generating-an-api-key" target="_blank" rel="noopener">
-          How to get your API key
+          <span id="api-key-help">How to get your API key</span>
         </a>
       </p>
     </div>
@@ -45,13 +45,13 @@
       <div id="loading-state" class="hidden">
         <div class="loading-indicator">
           <span class="spinner"></span>
-          <span>Checking Attio...</span>
+          <span id="loading-text">Checking Attio...</span>
         </div>
       </div>
 
       <!-- Not on profile page -->
       <div id="no-profile-state" class="hidden">
-        <p class="description">Navigate to a LinkedIn, X, or Reddit profile to capture.</p>
+        <p class="description" id="no-profile-description">Navigate to a LinkedIn, X, or Reddit profile to capture.</p>
         <hr />
         <button id="disconnect-btn-no-profile" class="btn btn-tertiary">
           Disconnect
@@ -61,52 +61,41 @@
       <!-- Profile detected state (new or existing) -->
       <div id="profile-state" class="hidden">
 
-        <!-- Person Header Section -->
+        <!-- Header (primary interaction surface) -->
         <div class="person-header">
-          <div class="person-avatar" id="person-avatar">
-            <span class="avatar-placeholder">&#128100;</span>
-            <img class="avatar-image hidden" id="avatar-image" alt="Profile" />
+          <a class="person-link" id="person-link">
+            <span class="person-name" id="person-name"></span>
+            <span class="status-badge" id="status-badge"></span>
+            <span class="attio-link-icon hidden" id="attio-link-icon" aria-hidden="true">↗</span>
+          </a>
+        </div>
+
+        <!-- Core fields (static context) -->
+        <div class="core-fields" id="core-fields">
+          <div class="field-row">
+            <span class="field-label" id="core-label-name">Name</span>
+            <span class="field-value" id="core-value-name"></span>
           </div>
-          <div class="person-info">
-            <div class="person-name-row">
-              <a class="person-name" id="person-name"></a>
-              <span class="attio-link-icon hidden" id="attio-link-icon" title="Open in Attio" aria-hidden="true">↗</span>
-              <span class="status-badge" id="status-badge"></span>
-            </div>
-            <span class="person-role" id="person-role"></span>
-            <span class="person-company" id="person-company"></span>
+          <div class="field-row">
+            <span class="field-label" id="core-label-linkedin">LinkedIn</span>
+            <span class="field-value" id="core-value-linkedin"></span>
           </div>
         </div>
 
-        <!-- Primary CTA Section -->
-        <div class="cta-section">
-          <!-- Add Person (new state) -->
-          <button id="capture-btn" class="btn btn-primary btn-cta hidden">
-            Add Person
-          </button>
-
-          <!-- Update (existing state) -->
-          <button id="update-btn" class="btn btn-secondary hidden">
-            Update Info
-          </button>
+        <!-- State 1: New contact -->
+        <div id="state-new" class="sheet-state hidden">
+          <button id="save-btn" class="btn btn-primary btn-cta">Save to Attio</button>
         </div>
 
-        <!-- Data Preview Section -->
-        <div class="data-preview" id="data-preview">
-          <div class="section-header">Data Available</div>
-          <ul class="data-list" id="data-list">
-            <!-- Populated by popup.ts -->
-          </ul>
+        <!-- State 2: Existing contact with differences -->
+        <div id="state-diff" class="sheet-state hidden">
+          <div class="diff-list" id="diff-list"></div>
+          <button id="update-all-btn" class="btn btn-tertiary hidden">Update all</button>
         </div>
 
-        <!-- Object Mapping Section -->
-        <div class="object-mapping">
-          <div class="section-header">Attio Mapping</div>
-          <div class="mapping-row">
-            <span class="mapping-label">Person</span>
-            <span class="mapping-arrow">&rarr;</span>
-            <span class="mapping-value">People</span>
-          </div>
+        <!-- State 3: Existing contact, no differences -->
+        <div id="state-clean" class="sheet-state hidden">
+          <div class="clean-status" id="up-to-date">Up to date ✓</div>
         </div>
 
         <hr />
