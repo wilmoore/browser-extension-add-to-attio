@@ -76,12 +76,14 @@ describe('MATCHING_ATTRIBUTES', () => {
 });
 
 describe('BADGE_STATES', () => {
-  it('has EXISTS state with green color', () => {
-    expect(BADGE_STATES.EXISTS.color).toBe('#10b981');
+  it('has EXISTS state with no badge (transparent)', () => {
+    expect(BADGE_STATES.EXISTS.color).toEqual([0, 0, 0, 0]);
+    expect(BADGE_STATES.EXISTS.text).toBe('');
   });
 
-  it('has CAPTURABLE state with orange color', () => {
-    expect(BADGE_STATES.CAPTURABLE.color).toBe('#f59e0b');
+  it('has CAPTURABLE state with purple color and + indicator', () => {
+    expect(BADGE_STATES.CAPTURABLE.color).toBe('#6366f1');
+    expect(BADGE_STATES.CAPTURABLE.text).toBe('+');
   });
 
   it('has NONE state with transparent color', () => {

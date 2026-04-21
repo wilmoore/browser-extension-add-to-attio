@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "sessions": [
+    {
+      "id": "session-2026-04-01T05-03-28-791Z-3708620b",
+      "filename": "session-2026-04-01T05-03-28-791Z-3708620b.md",
+      "relativePath": "sessions/session-2026-04-01T05-03-28-791Z-3708620b.md",
+      "status": "pending",
+      "createdAt": "2026-04-01T05:03:28.791Z",
+      "updatedAt": "2026-04-01T05:03:28.791Z",
+      "trigger": "plugin.initialize",
+      "branch": "fix/name-attribute-invalid-value",
+      "workingTree": "dirty",
+      "recentCommit": "709d37a fix: use semantic selectors for LinkedIn name extraction",
+      "backlogSummary": "- In-progress items: unknown (no readable backlog)"
+    },
+    {
+      "id": "session-2026-04-01T07-08-35-154Z-bbb41348",
+      "filename": "session-2026-04-01T07-08-35-154Z-bbb41348.md",
+      "relativePath": "sessions/session-2026-04-01T07-08-35-154Z-bbb41348.md",
+      "status": "pending",
+      "createdAt": "2026-04-01T07:08:35.154Z",
+      "updatedAt": "2026-04-01T07:08:35.154Z",
+      "trigger": "plugin.initialize",
+      "branch": "main",
+      "workingTree": "dirty",
+      "recentCommit": "b701ff4 Merge pull request #5 from wilmoore/fix/name-attribute-invalid-value",
+      "backlogSummary": "- In-progress items: unknown (no readable backlog)"
+    },
+    {
+      "id": "session-2026-04-01T12-31-18-882Z-b6da409e",
+      "filename": "session-2026-04-01T12-31-18-882Z-b6da409e.md",
+      "relativePath": "sessions/session-2026-04-01T12-31-18-882Z-b6da409e.md",
+      "status": "pending",
+      "createdAt": "2026-04-01T12:31:18.882Z",
+      "updatedAt": "2026-04-01T12:31:18.882Z",
+      "trigger": "plugin.initialize",
+      "branch": "refactor/add-to-attio-sheet-diff-based-ui",
+      "workingTree": "dirty",
+      "recentCommit": "b701ff4 Merge pull request #5 from wilmoore/fix/name-attribute-invalid-value",
+      "backlogSummary": "- In-progress items: 1 (latest: Refactor Add to Attio sheet to diff-based UI)"
+    },
+    {
+      "id": "session-2026-04-01T12-39-39-745Z-3cbf075c",
+      "filename": "session-2026-04-01T12-39-39-745Z-3cbf075c.md",
+      "relativePath": "sessions/session-2026-04-01T12-39-39-745Z-3cbf075c.md",
+      "status": "pending",
+      "createdAt": "2026-04-01T12:39:39.745Z",
+      "updatedAt": "2026-04-01T12:39:39.745Z",
+      "trigger": "plugin.initialize",
+      "branch": "refactor/add-to-attio-sheet-diff-based-ui",
+      "workingTree": "dirty",
+      "recentCommit": "b701ff4 Merge pull request #5 from wilmoore/fix/name-attribute-invalid-value",
+      "backlogSummary": "- In-progress items: 1 (latest: Refactor Add to Attio sheet to diff-based UI)"
+    },
+    {
+      "id": "session-2026-04-12T15-43-41-088Z-b22aeeb0",
+      "filename": "session-2026-04-12T15-43-41-088Z-b22aeeb0.md",
+      "relativePath": "sessions/session-2026-04-12T15-43-41-088Z-b22aeeb0.md",
+      "status": "pending",
+      "createdAt": "2026-04-12T15:43:41.088Z",
+      "updatedAt": "2026-04-12T15:43:41.088Z",
+      "trigger": "plugin.initialize",
+      "branch": "refactor/add-to-attio-sheet-diff-based-ui",
+      "workingTree": "dirty",
+      "recentCommit": "b701ff4 Merge pull request #5 from wilmoore/fix/name-attribute-invalid-value",
+      "backlogSummary": "- In-progress items: 1 (latest: Refactor Add to Attio sheet to diff-based UI)"
+    },
+    {
+      "id": "session-2026-04-16T13-25-46-851Z-24d98ae8",
+      "filename": "session-2026-04-16T13-25-46-851Z-24d98ae8.md",
+      "relativePath": "sessions/session-2026-04-16T13-25-46-851Z-24d98ae8.md",
+      "status": "pending",
+      "createdAt": "2026-04-16T13:25:46.851Z",
+      "updatedAt": "2026-04-16T13:25:46.851Z",
+      "trigger": "plugin.initialize",
+      "branch": "fix/existing-contact-badge-ux",
+      "workingTree": "dirty",
+      "recentCommit": "b701ff4 Merge pull request #5 from wilmoore/fix/name-attribute-invalid-value",
+      "backlogSummary": "- In-progress items: 1 (latest: Refactor Add to Attio sheet to diff-based UI)"
+    }
+  ]
+}

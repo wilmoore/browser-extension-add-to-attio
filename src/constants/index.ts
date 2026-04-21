@@ -23,9 +23,9 @@ export const MATCHING_ATTRIBUTES: Record<Platform, string> = {
 
 // Badge states for extension icon
 export const BADGE_STATES: Record<string, BadgeState> = {
-  EXISTS: { text: '', color: '#10b981' },      // Green - person in Attio
-  CAPTURABLE: { text: '', color: '#f59e0b' },  // Orange - can capture
-  NONE: { text: '', color: [0, 0, 0, 0] as [number, number, number, number] },      // No badge
+  EXISTS: { text: '', color: [0, 0, 0, 0] as [number, number, number, number] },     // No badge - person already in Attio
+  CAPTURABLE: { text: '+', color: '#6366f1' },  // Purple + indicator - can capture profile
+  NONE: { text: '', color: [0, 0, 0, 0] as [number, number, number, number] },       // No badge
 };
 
 // Non-profile paths to skip on Twitter/X

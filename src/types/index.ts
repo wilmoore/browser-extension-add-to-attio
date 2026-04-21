@@ -5,6 +5,9 @@
 // Platform types
 export type Platform = 'linkedin' | 'twitter' | 'reddit';
 
+// Fields supported by popup diff/update UI
+export type PersonFieldKey = 'name' | 'linkedin' | 'twitter' | 'description';
+
 // Profile data extracted from content scripts
 export interface ProfileData {
   fullName: string | null;
@@ -30,12 +33,23 @@ export interface AttioPerson {
   attioUrl: string | null;
 }
 
+// Subset of Attio values used for popup diffing
+export interface AttioPersonValues {
+  name: string | null;
+  linkedin: string | null;
+  twitter: string | null;
+  description: string | null;
+}
+
 // Response from checkPerson action
 export interface CheckPersonResponse {
   exists: boolean;
   person?: AttioPerson;
+  personValues?: AttioPersonValues;
   profileData?: ProfileData;
   error?: string;
+  /** Whether the content script is available for full profile extraction */
+  contentScriptAvailable?: boolean;
 }
 
 // Response from captureProfile action
@@ -107,7 +121,8 @@ export type MessageAction =
   | CaptureProfileMessage
   | ExtractProfileMessage
   | ShowFeedbackMessage
-  | RefreshBadgeMessage;
+  | RefreshBadgeMessage
+  | UpdatePersonFieldMessage;
 
 export interface CheckPersonMessage {
   action: 'checkPerson';
@@ -134,6 +149,18 @@ export interface ShowFeedbackMessage {
 
 export interface RefreshBadgeMessage {
   action: 'refreshBadge';
+}
+
+export interface UpdatePersonFieldMessage {
+  action: 'updatePersonField';
+  recordId: string;
+  field: PersonFieldKey;
+  value: string;
+}
+
+export interface UpdatePersonFieldResponse {
+  success: boolean;
+  error?: string;
 }
 
 // Badge state type

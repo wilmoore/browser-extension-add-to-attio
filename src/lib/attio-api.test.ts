@@ -352,6 +352,20 @@ describe('findPersonByAttribute', () => {
 });
 
 describe('getWorkspaceSlug', () => {
+  it('returns top-level workspace slug from identify response', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        active: true,
+        workspace_slug: 'my-workspace',
+      }),
+    });
+
+    const result = await getWorkspaceSlug('test-key');
+
+    expect(result).toBe('my-workspace');
+  });
+
   it('returns workspace slug on success', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,

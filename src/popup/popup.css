@@ -242,73 +242,48 @@ hr {
 
 /* Person Header */
 .person-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
   margin-bottom: 12px;
 }
 
-.person-avatar {
-  flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #e8f5e9;
-}
-
-.avatar-placeholder {
-  font-size: 24px;
-  color: #666;
-}
-
-.avatar-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.person-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-  flex: 1;
-}
-
-.person-name-row {
+.person-link {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  width: 100%;
+  padding: 12px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.person-link[href] {
+  cursor: pointer;
+}
+
+.person-link[href]:hover {
+  background-color: #f3f4f6;
+}
+
+.person-link:focus-visible {
+  outline: 2px solid rgba(21, 101, 192, 0.5);
+  outline-offset: 2px;
 }
 
 .person-name {
   font-weight: 600;
   color: #1a1a2e;
   font-size: 15px;
-  text-decoration: none;
-}
-
-.person-name[href]:hover {
-  text-decoration: underline;
-}
-
-.person-name:focus-visible {
-  outline: 2px solid rgba(21, 101, 192, 0.5);
-  outline-offset: 2px;
-  border-radius: 4px;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .attio-link-icon {
   font-size: 12px;
-  color: #1565c0;
+  color: #666;
   user-select: none;
 }
 
@@ -330,112 +305,109 @@ hr {
   color: #2e7d32;
 }
 
-.person-role,
-.person-company {
-  font-size: 12px;
-  color: #666;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.person-company {
-  color: #888;
-}
-
 /* CTA Section */
-.cta-section {
-  margin-bottom: 16px;
-}
-
 .btn-cta {
   font-size: 15px;
   padding: 12px 16px;
 }
 
-/* Data Preview Section */
-.data-preview {
-  margin-bottom: 16px;
+/* Core Fields */
+.core-fields {
+  margin-bottom: 12px;
 }
 
-.section-header {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #888;
-  margin-bottom: 8px;
-}
-
-.data-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.data-list li {
+.field-row {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: baseline;
+  gap: 12px;
   padding: 6px 0;
-  font-size: 13px;
-  color: #333;
   border-bottom: 1px solid #f0f0f0;
 }
 
-.data-list li:last-child {
+.field-row:last-child {
   border-bottom: none;
 }
 
-.data-icon {
-  width: 16px;
-  text-align: center;
+.field-label {
+  color: #666;
+  min-width: 72px;
   font-size: 12px;
 }
 
-.data-label {
-  color: #666;
-  min-width: 70px;
-}
-
-.data-value {
+.field-value {
   flex: 1;
+  color: #333;
+  font-size: 13px;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #333;
 }
 
-.data-value.muted {
-  color: #aaa;
-  font-style: italic;
-}
-
-/* Object Mapping Section */
-.object-mapping {
-  margin-bottom: 16px;
-}
-
-.mapping-row {
+/* Diff */
+.diff-list {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background-color: #f8f9fa;
-  border-radius: 6px;
-  font-size: 13px;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
-.mapping-label {
-  color: #666;
-  min-width: 60px;
+.diff-row {
+  padding: 10px 12px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  background: #fff;
 }
 
-.mapping-arrow {
-  color: #888;
-}
-
-.mapping-value {
+.diff-field {
+  font-size: 12px;
+  font-weight: 600;
   color: #333;
-  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.diff-values {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 6px 12px;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+
+.diff-side {
+  color: #666;
+}
+
+.diff-value {
+  color: #333;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diff-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.diff-actions .btn {
+  width: auto;
+  flex: 1;
+  padding: 8px 10px;
+}
+
+.diff-updated {
+  font-size: 12px;
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+/* Clean */
+.clean-status {
+  padding: 12px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  color: #2e7d32;
+  font-weight: 600;
 }

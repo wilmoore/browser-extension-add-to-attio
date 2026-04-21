@@ -4,42 +4,48 @@
  */
 
 import { getApiKey, updateLastSync } from './lib/storage.js';
-import { upsertPerson, findPersonByAttribute, getWorkspaceSlug, AttioApiError } from './lib/attio-api.js';
+import {
+  upsertPerson,
+  findPersonByAttribute,
+  getWorkspaceSlug,
+  AttioApiError,
+  patchPersonValues,
+  parseName,
+} from './lib/attio-api.js';
 import { log } from './lib/logger.js';
+import { t } from './i18n/translations.js';
 import {
   MATCHING_ATTRIBUTES,
-  PLATFORM_PATTERNS,
   BADGE_STATES,
-  TWITTER_NON_PROFILE_PATHS,
   TIMING,
 } from './constants/index.js';
+import { detectPlatformFromUrl, extractMatchingValueFromUrl } from './lib/platform.js';
 import type {
   Platform,
   ProfileData,
   BadgeState,
   CheckPersonResponse,
   CaptureResponse,
+  AttioPersonValues,
+  PersonFieldKey,
+  AttioValuesInput,
+  UpdatePersonFieldResponse,
 } from './types/index.js';
 
-/**
- * Detect platform from URL
- */
-function detectPlatform(url: string): Platform | null {
-  if (!url) return null;
+function toPersonValues(values: unknown): AttioPersonValues {
+  const v = values as {
+    name?: Array<{ full_name?: string; first_name?: string }>;
+    linkedin?: Array<{ value: string }>;
+    twitter?: Array<{ value: string }>;
+    description?: Array<{ value: string }>;
+  } | undefined;
 
-  for (const [platform, pattern] of Object.entries(PLATFORM_PATTERNS)) {
-    if (pattern.test(url)) {
-      // Additional check for Twitter to exclude non-profile pages
-      if (platform === 'twitter') {
-        const match = url.match(/(?:twitter|x)\.com\/([^/?]+)/);
-        if (match && TWITTER_NON_PROFILE_PATHS.includes(match[1].toLowerCase())) {
-          return null;
-        }
-      }
-      return platform as Platform;
-    }
-  }
-  return null;
+  return {
+    name: v?.name?.[0]?.full_name ?? v?.name?.[0]?.first_name ?? null,
+    linkedin: v?.linkedin?.[0]?.value ?? null,
+    twitter: v?.twitter?.[0]?.value ?? null,
+    description: v?.description?.[0]?.value ?? null,
+  };
 }
 
 /**
@@ -83,7 +89,7 @@ async function updateBadge(tabId: number, state: BadgeState): Promise<void> {
  * Check badge state for a tab and update accordingly
  */
 async function checkAndUpdateBadge(tabId: number, url: string): Promise<void> {
-  const platform = detectPlatform(url);
+  const platform = detectPlatformFromUrl(url);
 
   if (!platform) {
     await updateBadge(tabId, BADGE_STATES.NONE);
@@ -133,43 +139,120 @@ async function checkAndUpdateBadge(tabId: number, url: string): Promise<void> {
 }
 
 /**
+ * Build a response for an existing person found in Attio
+ */
+async function buildExistingPersonResponse(
+  apiKey: string,
+  tabId: number,
+  existingPerson: { id?: { record_id?: string }; values?: unknown },
+  profileData: ProfileData | null,
+  contentScriptAvailable: boolean
+): Promise<CheckPersonResponse> {
+  const workspaceSlug = await getWorkspaceSlug(apiKey);
+  const recordId = existingPerson.id?.record_id;
+
+  log.background('Building Attio URL: %O', {
+    workspaceSlug,
+    recordId,
+    existingPersonId: existingPerson.id,
+  });
+
+  let attioUrl: string | null = null;
+  if (workspaceSlug && recordId) {
+    attioUrl = `https://app.attio.com/${workspaceSlug}/person/${recordId}`;
+  } else {
+    log.background('Missing workspaceSlug or recordId for URL construction');
+  }
+
+  // Extract name from existing record, preferring scraped data if Attio has username-like name
+  const values = existingPerson.values as {
+    name?: Array<{ full_name?: string; first_name?: string }>;
+  } | undefined;
+  const attioName = values?.name?.[0]?.full_name || values?.name?.[0]?.first_name;
+  const scrapedName = profileData?.fullName;
+
+  // Prefer scraped name if Attio name looks like a username (no spaces)
+  const isAttioNameValid = attioName && attioName.includes(' ');
+  const existingName = isAttioNameValid ? attioName : (scrapedName || attioName || 'Unknown');
+
+  log.background('Resolved person name: %O', {
+    fromAttioFullName: values?.name?.[0]?.full_name,
+    fromAttioFirstName: values?.name?.[0]?.first_name,
+    fromProfileData: scrapedName,
+    isAttioNameValid,
+    resolved: existingName,
+  });
+
+  // Update badge to show exists
+  await updateBadge(tabId, BADGE_STATES.EXISTS);
+
+  return {
+    exists: true,
+    person: recordId ? {
+      id: recordId,
+      name: existingName,
+      attioUrl,
+    } : undefined,
+    personValues: toPersonValues(existingPerson.values),
+    profileData: profileData ?? undefined,
+    contentScriptAvailable,
+  };
+}
+
+/**
  * Check if a person exists in Attio based on the current page
  */
-async function handleCheckPerson(platform: Platform, tabId: number): Promise<CheckPersonResponse> {
-  log.background('handleCheckPerson called: %O', { platform, tabId });
+async function handleCheckPerson(platform: Platform, tabId: number, tabUrl?: string): Promise<CheckPersonResponse> {
+  log.background('handleCheckPerson called: %O', { platform, tabId, tabUrl });
 
   try {
     const apiKey = await getApiKey();
     if (!apiKey) {
       log.background('No API key found');
-      return { exists: false, error: 'Not authenticated.' };
+      return { exists: false, error: t('error.notAuthenticated') };
     }
 
     // Extract profile data from page
     log.background('Extracting profile data from tab: %d', tabId);
-    let profileData: ProfileData;
+    let profileData: ProfileData | null = null;
+    let contentScriptAvailable = true;
+
     try {
       profileData = await chrome.tabs.sendMessage(tabId, {
         action: 'extractProfile',
       }) as ProfileData;
+
+      if (profileData?.error) {
+        log.background('Content script returned error: %s', profileData.error);
+        profileData = null;
+        contentScriptAvailable = false;
+      }
     } catch (msgError) {
       log.background('Failed to message content script: %O', msgError);
-      return { exists: false, error: 'Content script not ready. Please refresh the page.' };
+      contentScriptAvailable = false;
     }
 
-    log.background('Profile data: %O', profileData);
-
-    if (!profileData || profileData.error) {
-      return { exists: false, error: profileData?.error || 'Failed to extract profile' };
-    }
+    log.background('Profile data: %O, contentScriptAvailable: %s', profileData, contentScriptAvailable);
 
     const attribute = MATCHING_ATTRIBUTES[platform];
-    const value = getAttributeValue(platform, profileData);
+
+    // Try to get matching value from profile data first, then fall back to URL
+    let value = profileData ? getAttributeValue(platform, profileData) : null;
+
+    // URL-based fallback when content script is unavailable
+    if (!value && tabUrl) {
+      value = extractMatchingValueFromUrl(platform, tabUrl);
+      log.background('Using URL-based fallback value: %s', value);
+    }
 
     log.background('Querying Attio: %O', { attribute, value });
 
     if (!value) {
-      return { exists: false, profileData };
+      // No value to search with - show no-profile state if no content script
+      if (!contentScriptAvailable) {
+        return { exists: false, error: t('popup.msg.refreshToSeeProfile'), contentScriptAvailable: false };
+      }
+      return { exists: false, profileData: profileData ?? undefined };
     }
 
     // Search for existing person
@@ -178,61 +261,73 @@ async function handleCheckPerson(platform: Platform, tabId: number): Promise<Che
     log.background('Search result: %s', existingPerson ? 'Found' : 'Not found');
 
     if (existingPerson) {
-      // Get workspace slug for URL construction
-      const workspaceSlug = await getWorkspaceSlug(apiKey);
-      const recordId = existingPerson.id?.record_id;
-
-      log.background('Building Attio URL: %O', {
-        workspaceSlug,
-        recordId,
-        existingPersonId: existingPerson.id,
-      });
-
-      let attioUrl: string | null = null;
-      if (workspaceSlug && recordId) {
-        attioUrl = `https://app.attio.com/${workspaceSlug}/person/${recordId}`;
-      } else {
-        log.background('Missing workspaceSlug or recordId for URL construction');
-      }
-
-      // Extract name from existing record, preferring scraped data if Attio has username-like name
-      const attioName = existingPerson.values?.name?.[0]?.full_name ||
-                        existingPerson.values?.name?.[0]?.first_name;
-      const scrapedName = profileData.fullName;
-
-      // Prefer scraped name if Attio name looks like a username (no spaces)
-      const isAttioNameValid = attioName && attioName.includes(' ');
-      const existingName = isAttioNameValid ? attioName : (scrapedName || attioName || 'Unknown');
-
-      log.background('Resolved person name: %O', {
-        fromAttioFullName: existingPerson.values?.name?.[0]?.full_name,
-        fromAttioFirstName: existingPerson.values?.name?.[0]?.first_name,
-        fromProfileData: scrapedName,
-        isAttioNameValid,
-        resolved: existingName,
-      });
-
-      // Update badge to show exists
-      await updateBadge(tabId, BADGE_STATES.EXISTS);
-
-      return {
-        exists: true,
-        person: {
-          id: recordId,
-          name: existingName,
-          attioUrl,
-        },
-        profileData,
-      };
+      return buildExistingPersonResponse(apiKey, tabId, existingPerson, profileData, contentScriptAvailable);
     }
 
-    // Update badge to show capturable
+    // Person doesn't exist - show capturable state
     await updateBadge(tabId, BADGE_STATES.CAPTURABLE);
 
-    return { exists: false, profileData };
+    // If content script unavailable, we can't capture - show helpful message
+    if (!contentScriptAvailable) {
+      return { exists: false, error: t('popup.msg.refreshToCapture'), contentScriptAvailable: false };
+    }
+
+    return { exists: false, profileData: profileData ?? undefined };
   } catch (error) {
     log.background('Check person error: %O', error);
-    return { exists: false, error: (error as Error).message };
+    return { exists: false, error: t('popup.msg.checkFailed') };
+  }
+}
+
+async function handleUpdatePersonField(
+  recordId: string,
+  field: PersonFieldKey,
+  value: string
+): Promise<UpdatePersonFieldResponse> {
+  try {
+    const apiKey = await getApiKey();
+    if (!apiKey) {
+      return { success: false, error: t('error.notAuthenticated') };
+    }
+
+    const values: AttioValuesInput = {};
+
+    switch (field) {
+      case 'linkedin':
+        values.linkedin = [{ value }];
+        break;
+      case 'twitter':
+        values.twitter = [{ value }];
+        break;
+      case 'description':
+        values.description = [{ value }];
+        break;
+      case 'name': {
+        const { firstName, lastName } = parseName(value);
+        values.name = [{
+          first_name: firstName,
+          last_name: lastName,
+          full_name: value,
+        }];
+        break;
+      }
+      default:
+        return { success: false, error: t('error.unsupportedField') };
+    }
+
+    await patchPersonValues(apiKey, recordId, values);
+    return { success: true };
+  } catch (error) {
+    log.background('Update field error: %O', error);
+
+    let errorMessage = 'An unexpected error occurred.';
+    if (error instanceof AttioApiError) {
+      errorMessage = error.message;
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+
+    return { success: false, error: errorMessage };
   }
 }
 
@@ -248,7 +343,7 @@ async function handleCaptureProfile(
     // Get API key
     const apiKey = await getApiKey();
     if (!apiKey) {
-      return { success: false, error: 'Not authenticated. Please connect your Attio account.' };
+      return { success: false, error: t('error.notAuthenticated') };
     }
 
     // Send message to content script to extract profile data
@@ -349,7 +444,11 @@ interface MessageWithAction {
   action: string;
   platform?: Platform;
   tabId?: number;
+  tabUrl?: string;
   isUpdate?: boolean;
+  recordId?: string;
+  field?: PersonFieldKey;
+  value?: string;
 }
 
 /**
@@ -359,14 +458,14 @@ chrome.runtime.onMessage.addListener(
   (
     message: MessageWithAction,
     sender: chrome.runtime.MessageSender,
-    sendResponse: (response: CheckPersonResponse | CaptureResponse | { success: boolean }) => void
+    sendResponse: (response: CheckPersonResponse | CaptureResponse | UpdatePersonFieldResponse | { success: boolean }) => void
   ) => {
     if (message.action === 'checkPerson' && message.platform && message.tabId !== undefined) {
-      handleCheckPerson(message.platform, message.tabId)
+      handleCheckPerson(message.platform, message.tabId, message.tabUrl)
         .then(sendResponse)
         .catch((error: Error) => {
           log.background('Check person error: %O', error);
-          sendResponse({ exists: false, error: 'Failed to check.' });
+          sendResponse({ exists: false, error: t('popup.msg.checkFailed') });
         });
       return true;
     }
@@ -379,7 +478,17 @@ chrome.runtime.onMessage.addListener(
         })
         .catch((error: Error) => {
           log.background('Message handler error: %O', error);
-          sendResponse({ success: false, error: 'Internal error.' });
+          sendResponse({ success: false, error: t('error.internal') });
+        });
+      return true;
+    }
+
+    if (message.action === 'updatePersonField' && message.recordId && message.field && typeof message.value === 'string') {
+      handleUpdatePersonField(message.recordId, message.field, message.value)
+        .then(sendResponse)
+        .catch((error: Error) => {
+          log.background('Update field handler error: %O', error);
+          sendResponse({ success: false, error: t('error.internal') });
         });
       return true;
     }
