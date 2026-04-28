@@ -6,7 +6,13 @@
 export type Platform = 'linkedin' | 'twitter' | 'reddit';
 
 // Fields supported by popup diff/update UI
-export type PersonFieldKey = 'name' | 'linkedin' | 'twitter' | 'description';
+export type PersonFieldKey = 'name' | 'linkedin' | 'twitter' | 'description' | 'email' | 'website';
+
+// Website with optional label (e.g., "Company", "Personal")
+export interface WebsiteEntry {
+  url: string;
+  label?: string;
+}
 
 // Profile data extracted from content scripts
 export interface ProfileData {
@@ -24,6 +30,10 @@ export interface ProfileData {
   location?: string;            // Location text (visible on page)
   connectionDegree?: string;    // "1st", "2nd", "3rd" or null
   hasContactInfo?: boolean;     // Whether Contact Info link is visible
+  // Contact info fields (extracted from LinkedIn modal)
+  emails?: string[];            // Email addresses
+  websites?: WebsiteEntry[];    // Websites with labels
+  connectedSince?: string;      // Connection date (e.g., "Apr 4, 2026")
 }
 
 // Attio person record (simplified for extension use)
@@ -39,6 +49,11 @@ export interface AttioPersonValues {
   linkedin: string | null;
   twitter: string | null;
   description: string | null;
+  email: string | null;           // Primary email (first in array)
+  emails?: string[];              // All emails for multi-value display
+  website: string | null;         // Primary website (first in array)
+  websites?: string[];            // All websites for multi-value display
+  location?: string | null;       // Location for contact summary
 }
 
 // Response from checkPerson action
@@ -86,6 +101,21 @@ export interface AttioRecordValues {
   linkedin?: Array<{ value: string }>;
   twitter?: Array<{ value: string }>;
   description?: Array<{ value: string }>;
+  email_addresses?: Array<{ email_address: string }>;
+  // Attio stores location as a structured object with multiple fields
+  primary_location?: Array<{
+    locality?: string;
+    region?: string;
+    country_code?: string;
+    line_1?: string;
+    line_2?: string;
+    line_3?: string;
+    line_4?: string;
+    postcode?: string;
+    latitude?: string;
+    longitude?: string;
+    original_formatted_address?: string;
+  }>;
 }
 
 // Values object for Attio API create/update
@@ -100,6 +130,7 @@ export interface AttioValuesInput {
   linkedin?: Array<{ value: string }>;
   twitter?: Array<{ value: string }>;
   description?: Array<{ value: string }>;
+  email_addresses?: Array<{ email_address: string }>;
 }
 
 // Attio query filter structure

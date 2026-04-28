@@ -38,13 +38,37 @@ function toPersonValues(values: unknown): AttioPersonValues {
     linkedin?: Array<{ value: string }>;
     twitter?: Array<{ value: string }>;
     description?: Array<{ value: string }>;
+    email_addresses?: Array<{ email_address: string }>;
+    primary_location?: Array<{
+      locality?: string;
+      region?: string;
+      original_formatted_address?: string;
+    }>;
   } | undefined;
+
+  // Extract all emails for multi-value display
+  const emails = v?.email_addresses?.map(e => e.email_address).filter(Boolean) ?? [];
+
+  // Build location string from primary_location
+  let location: string | null = null;
+  const loc = v?.primary_location?.[0];
+  if (loc) {
+    // Prefer formatted address, fall back to locality + region
+    location = loc.original_formatted_address
+      || [loc.locality, loc.region].filter(Boolean).join(', ')
+      || null;
+  }
 
   return {
     name: v?.name?.[0]?.full_name ?? v?.name?.[0]?.first_name ?? null,
     linkedin: v?.linkedin?.[0]?.value ?? null,
     twitter: v?.twitter?.[0]?.value ?? null,
     description: v?.description?.[0]?.value ?? null,
+    email: emails[0] ?? null,
+    emails: emails.length > 0 ? emails : undefined,
+    website: null, // Attio People object doesn't have a standard website attribute
+    websites: undefined,
+    location,
   };
 }
 
@@ -311,6 +335,13 @@ async function handleUpdatePersonField(
         }];
         break;
       }
+      case 'email':
+        values.email_addresses = [{ email_address: value }];
+        break;
+      case 'website':
+        // Attio People object doesn't have a standard website attribute
+        // Skip for now - would need custom attribute
+        return { success: false, error: t('error.unsupportedField') };
       default:
         return { success: false, error: t('error.unsupportedField') };
     }

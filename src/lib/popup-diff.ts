@@ -51,15 +51,21 @@ function valuesDiffer(field: PersonFieldKey, attioValue: string | null, sourceVa
 }
 
 export function computeFieldDiffs(attio: AttioPersonValues, source: ProfileData): FieldDiff[] {
+  // Get primary email and website from source arrays
+  const primaryEmail = source.emails?.[0] ?? null;
+  const primaryWebsite = source.websites?.[0]?.url ?? null;
+
   const sourceValues: Record<PersonFieldKey, string | null> = {
     name: source.fullName ?? null,
     linkedin: source.linkedinUrl ?? null,
     twitter: source.twitterHandle ?? null,
     description: source.description ?? null,
+    email: primaryEmail,
+    website: primaryWebsite,
   };
 
   const diffs: FieldDiff[] = [];
-  const fields: PersonFieldKey[] = ['linkedin', 'twitter', 'description', 'name'];
+  const fields: PersonFieldKey[] = ['linkedin', 'twitter', 'description', 'name', 'email', 'website'];
 
   for (const field of fields) {
     const attioValue = attio[field];

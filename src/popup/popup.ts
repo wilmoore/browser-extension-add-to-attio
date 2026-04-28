@@ -60,6 +60,17 @@ const stateDiff = document.getElementById('state-diff') as HTMLElement;
 const stateClean = document.getElementById('state-clean') as HTMLElement;
 const upToDate = document.getElementById('up-to-date') as HTMLElement;
 
+// DOM Elements - Contact summary
+const contactSummary = document.getElementById('contact-summary') as HTMLElement;
+const summaryEmailRow = document.getElementById('summary-email-row') as HTMLElement;
+const summaryEmailValue = document.getElementById('summary-email-value') as HTMLElement;
+const summaryEmailMore = document.getElementById('summary-email-more') as HTMLElement;
+const summaryWebsiteRow = document.getElementById('summary-website-row') as HTMLElement;
+const summaryWebsiteValue = document.getElementById('summary-website-value') as HTMLElement;
+const summaryWebsiteMore = document.getElementById('summary-website-more') as HTMLElement;
+const summaryLocationRow = document.getElementById('summary-location-row') as HTMLElement;
+const summaryLocationValue = document.getElementById('summary-location-value') as HTMLElement;
+
 // DOM Elements - Actions
 const saveBtn = document.getElementById('save-btn') as HTMLButtonElement;
 const diffList = document.getElementById('diff-list') as HTMLElement;
@@ -187,6 +198,81 @@ function renderCoreFields(profileData: ProfileData): void {
   }
 }
 
+/**
+ * Render contact summary for existing contacts
+ * Shows email, website, and location from Attio data or profile data
+ */
+function renderContactSummary(
+  attioValues: AttioPersonValues | null,
+  profileData: ProfileData | null
+): void {
+  // Get email from Attio or profile
+  const primaryEmail = attioValues?.email ?? profileData?.emails?.[0] ?? null;
+  const emailCount = (attioValues?.emails?.length ?? 0) || (profileData?.emails?.length ?? 0);
+
+  // Get website from profile (Attio People doesn't have website)
+  const primaryWebsite = profileData?.websites?.[0]?.url ?? null;
+  const websiteCount = profileData?.websites?.length ?? 0;
+
+  // Get location from Attio or profile
+  const location = attioValues?.location ?? profileData?.location ?? null;
+
+  // Render email row
+  if (primaryEmail) {
+    summaryEmailValue.textContent = primaryEmail;
+    summaryEmailValue.classList.remove('empty');
+    if (emailCount > 1) {
+      summaryEmailMore.textContent = t('popup.summary.moreEmails').replace('{n}', String(emailCount - 1));
+      summaryEmailMore.classList.remove('hidden');
+    } else {
+      summaryEmailMore.classList.add('hidden');
+    }
+    summaryEmailRow.classList.remove('hidden');
+  } else {
+    summaryEmailValue.textContent = t('popup.summary.noEmail');
+    summaryEmailValue.classList.add('empty');
+    summaryEmailMore.classList.add('hidden');
+    summaryEmailRow.classList.remove('hidden');
+  }
+
+  // Render website row
+  if (primaryWebsite) {
+    // Display domain only for cleaner look
+    try {
+      const url = new URL(primaryWebsite);
+      summaryWebsiteValue.textContent = url.hostname.replace('www.', '');
+    } catch {
+      summaryWebsiteValue.textContent = primaryWebsite;
+    }
+    summaryWebsiteValue.classList.remove('empty');
+    if (websiteCount > 1) {
+      summaryWebsiteMore.textContent = t('popup.summary.moreWebsites').replace('{n}', String(websiteCount - 1));
+      summaryWebsiteMore.classList.remove('hidden');
+    } else {
+      summaryWebsiteMore.classList.add('hidden');
+    }
+    summaryWebsiteRow.classList.remove('hidden');
+  } else {
+    summaryWebsiteValue.textContent = t('popup.summary.noWebsite');
+    summaryWebsiteValue.classList.add('empty');
+    summaryWebsiteMore.classList.add('hidden');
+    summaryWebsiteRow.classList.remove('hidden');
+  }
+
+  // Render location row
+  if (location) {
+    summaryLocationValue.textContent = location;
+    summaryLocationValue.classList.remove('empty');
+    summaryLocationRow.classList.remove('hidden');
+  } else {
+    summaryLocationValue.textContent = t('popup.summary.noLocation');
+    summaryLocationValue.classList.add('empty');
+    summaryLocationRow.classList.remove('hidden');
+  }
+
+  contactSummary.classList.remove('hidden');
+}
+
 function fieldLabel(field: PersonFieldKey): string {
   switch (field) {
     case 'linkedin':
@@ -197,6 +283,10 @@ function fieldLabel(field: PersonFieldKey): string {
       return t('popup.field.description');
     case 'name':
       return t('popup.core.nameLabel');
+    case 'email':
+      return t('popup.field.email');
+    case 'website':
+      return t('popup.field.website');
     default:
       return field;
   }
@@ -220,6 +310,8 @@ async function updateField(field: PersonFieldKey): Promise<void> {
     linkedin: currentProfileData.linkedinUrl ?? null,
     twitter: currentProfileData.twitterHandle ?? null,
     description: currentProfileData.description ?? null,
+    email: currentProfileData.emails?.[0] ?? null,
+    website: currentProfileData.websites?.[0]?.url ?? null,
   };
 
   const value = valueByField[field];
@@ -276,6 +368,9 @@ function renderExistingClean(): void {
   hideAllSheetStates();
   coreFields.classList.add('hidden');
   stateClean.classList.remove('hidden');
+
+  // Render contact summary with available data
+  renderContactSummary(currentAttioValues, currentProfileData);
 }
 
 function renderExistingDiff(): void {

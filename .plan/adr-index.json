@@ -1,5 +1,5 @@
 {
-  "lastSequence": 6,
+  "lastSequence": 8,
   "entries": [
     {
       "branch": "feat/fix-popup-state-display",
@@ -20,6 +20,14 @@
     {
       "branch": "fix/name-attribute-invalid-value",
       "adrs": ["006-link-existing-person-to-attio-from-popup.md"]
+    },
+    {
+      "branch": "refactor/add-to-attio-sheet-diff-based-ui",
+      "adrs": ["007-semantic-badge-indicator-for-existing-contacts.md"]
+    },
+    {
+      "branch": "feat/extract-linkedin-contact-info",
+      "adrs": ["008-linkedin-contact-info-modal-extraction.md"]
     }
   ]
 }

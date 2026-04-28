@@ -95,6 +95,23 @@
 
         <!-- State 3: Existing contact, no differences -->
         <div id="state-clean" class="sheet-state hidden">
+          <!-- Contact summary for existing contacts -->
+          <div class="contact-summary" id="contact-summary">
+            <div class="contact-row" id="summary-email-row">
+              <span class="contact-icon">✉</span>
+              <span class="contact-value" id="summary-email-value"></span>
+              <span class="contact-more hidden" id="summary-email-more"></span>
+            </div>
+            <div class="contact-row" id="summary-website-row">
+              <span class="contact-icon">🔗</span>
+              <span class="contact-value" id="summary-website-value"></span>
+              <span class="contact-more hidden" id="summary-website-more"></span>
+            </div>
+            <div class="contact-row" id="summary-location-row">
+              <span class="contact-icon">📍</span>
+              <span class="contact-value" id="summary-location-value"></span>
+            </div>
+          </div>
           <div class="clean-status" id="up-to-date">Up to date ✓</div>
         </div>
 
