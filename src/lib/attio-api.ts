@@ -89,6 +89,11 @@ function buildValuesObject(personData: ProfileData): AttioValuesInput {
     values.description = [{ value: personData.description }];
   }
 
+  // Add email addresses from contact info extraction
+  if (personData.emails && personData.emails.length > 0) {
+    values.email_addresses = personData.emails.map(email => ({ email_address: email }));
+  }
+
   return values;
 }
 

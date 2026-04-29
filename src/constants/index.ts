@@ -83,6 +83,52 @@ export const LINKEDIN_SELECTORS = {
   ],
 };
 
+// LinkedIn Contact Info Modal selectors
+// Used to extract email, website, and connected since from the modal
+export const LINKEDIN_CONTACT_INFO_SELECTORS = {
+  // Link that opens the contact info modal
+  triggerLink: [
+    'a[href*="overlay/contact-info"]',
+    'a#top-card-text-details-contact-info',
+    '[data-control-name="contact_see_more"]',
+  ],
+  // Modal container detection
+  modal: [
+    '.artdeco-modal',
+    '[role="dialog"]',
+    '.pv-contact-info',
+  ],
+  // Close button for modal
+  closeButton: [
+    'button.artdeco-modal__dismiss',
+    '[data-test-modal-close-btn]',
+    'button[aria-label="Dismiss"]',
+  ],
+  // Email addresses - look for mailto: links
+  email: [
+    'a[href^="mailto:"]',
+    'section.ci-email a',
+    '.pv-contact-info__ci-container a[href^="mailto:"]',
+  ],
+  // Websites - look for external links (not LinkedIn)
+  website: [
+    'section.ci-websites a[href^="http"]',
+    '.pv-contact-info__ci-container a[href^="http"]:not([href*="linkedin.com"])',
+    '.ci-vanity-url a[href^="http"]:not([href*="linkedin.com"])',
+  ],
+  // Website label (e.g., "Company", "Personal")
+  websiteLabel: [
+    '.pv-contact-info__ci-container .t-black--light',
+    '.t-12.t-black--light',
+  ],
+  // Connected since date
+  connectedSince: [
+    '.pv-contact-info__ci-container time',
+    'section.ci-connected .t-black',
+    '.pv-contact-info__contact-item time',
+  ],
+};
+
 // Twitter/X profile selectors
 export const TWITTER_SELECTORS = {
   name: [
@@ -111,6 +157,10 @@ export const TIMING = {
   BADGE_CHECK_DELAY: 500,
   TOAST_AUTO_DISMISS: 3000,
   TOAST_FADE_DURATION: 300,
+  // Contact info modal interaction timing
+  MODAL_WAIT_TIMEOUT: 3000,     // Max time to wait for modal to appear
+  MODAL_POLL_INTERVAL: 100,     // Polling interval for modal detection
+  MODAL_CLOSE_DELAY: 100,       // Delay before closing modal
 };
 
 // Supported platforms configuration for popup

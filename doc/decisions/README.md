@@ -25,3 +25,4 @@ We use the [Michael Nygard format](https://cognitect.com/blog/2011/11/15/documen
 - [005. Person-First Popup Design](005-person-first-popup-design.md)
 - [006. Link Existing Person to Attio from Popup](006-link-existing-person-to-attio-from-popup.md)
 - [007. Semantic Badge Indicator for Existing Contacts](007-semantic-badge-indicator-for-existing-contacts.md)
+- [008. LinkedIn Contact Info Modal Extraction](008-linkedin-contact-info-modal-extraction.md)

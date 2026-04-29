@@ -1,6 +1,18 @@
 {
-  "lastSequence": 21,
+  "lastSequence": 22,
   "items": [
+    {
+      "id": 22,
+      "title": "Extract LinkedIn contact info and enhance existing contact UI",
+      "description": "Feature: Extract additional contact information from LinkedIn's 'Contact info' modal (email, website, connected since) and display richer information in the popup UI for existing contacts.\n\nCurrent state:\n- Contact info modal data (email, website, connected since) not being extracted\n- Existing contact UI shows only 'Up to date' - sparse and not valuable\n\nRequirements:\n1. Extract email, website, connected since from LinkedIn contact info\n2. Map to Attio person attributes (email_addresses, website)\n3. Show contact summary in 'Up to date' state instead of sparse display\n4. Support field-level diff for new fields",
+      "category": "feature",
+      "severity": "medium",
+      "fingerprint": "feature|22|extract-linkedin-contact-info-enhance-ui",
+      "source": "/pro:feature",
+      "sourceBranch": "feat/extract-linkedin-contact-info-enhance-ui",
+      "createdAt": "2026-04-27T00:00:00Z",
+      "status": "in-progress"
+    },
     {
       "id": 21,
       "title": "Existing contact badge UX issues",

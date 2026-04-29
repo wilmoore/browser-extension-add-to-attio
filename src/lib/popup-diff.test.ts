@@ -20,6 +20,8 @@ describe('popup-diff', () => {
       linkedin: 'https://www.linkedin.com/in/kimmloy',
       twitter: null,
       description: null,
+      email: null,
+      website: null,
     };
 
     const source: ProfileData = {
@@ -39,6 +41,8 @@ describe('popup-diff', () => {
       linkedin: null,
       twitter: '@kim',
       description: 'Old',
+      email: null,
+      website: null,
     };
 
     const source: ProfileData = {
@@ -50,5 +54,48 @@ describe('popup-diff', () => {
 
     const diffs = computeFieldDiffs(attio, source);
     expect(diffs.map((d) => d.field).sort()).toEqual(['description', 'linkedin']);
+  });
+
+  it('computeFieldDiffs detects new email and website values', () => {
+    const attio: AttioPersonValues = {
+      name: 'Kim Loy',
+      linkedin: 'https://www.linkedin.com/in/kimmloy',
+      twitter: null,
+      description: null,
+      email: null,
+      website: null,
+    };
+
+    const source: ProfileData = {
+      fullName: 'Kim Loy',
+      linkedinUrl: 'https://linkedin.com/in/kimmloy/',
+      emails: ['kim@example.com'],
+      websites: [{ url: 'https://example.com', label: 'Company' }],
+    };
+
+    const diffs = computeFieldDiffs(attio, source);
+    expect(diffs.map((d) => d.field).sort()).toEqual(['email', 'website']);
+    expect(diffs.find(d => d.field === 'email')?.sourceValue).toBe('kim@example.com');
+    expect(diffs.find(d => d.field === 'website')?.sourceValue).toBe('https://example.com');
+  });
+
+  it('computeFieldDiffs ignores email/website when already in sync', () => {
+    const attio: AttioPersonValues = {
+      name: 'Kim Loy',
+      linkedin: 'https://www.linkedin.com/in/kimmloy',
+      twitter: null,
+      description: null,
+      email: 'kim@example.com',
+      website: null,
+    };
+
+    const source: ProfileData = {
+      fullName: 'Kim Loy',
+      linkedinUrl: 'https://linkedin.com/in/kimmloy/',
+      emails: ['kim@example.com'],
+    };
+
+    const diffs = computeFieldDiffs(attio, source);
+    expect(diffs).toEqual([]);
   });
 });
