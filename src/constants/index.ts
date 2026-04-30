@@ -155,6 +155,8 @@ export const REDDIT_SELECTORS = {
 // Timing constants
 export const TIMING = {
   BADGE_CHECK_DELAY: 500,
+  BADGE_RETRY_DELAYS: [1000, 2000],  // Retry at 1s, 2s after initial failure
+  POPUP_RETRY_DELAY: 500,            // Popup auto-retry delay
   TOAST_AUTO_DISMISS: 3000,
   TOAST_FADE_DURATION: 300,
   // Contact info modal interaction timing

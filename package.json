@@ -1,6 +1,6 @@
 {
   "name": "add-to-attio",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Capture LinkedIn, X, and Reddit profiles and add them to Attio",
   "type": "module",
   "scripts": {

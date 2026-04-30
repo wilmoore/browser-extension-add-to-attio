@@ -1,5 +1,5 @@
 {
-  "lastSequence": 8,
+  "lastSequence": 9,
   "entries": [
     {
       "branch": "feat/fix-popup-state-display",
@@ -28,6 +28,10 @@
     {
       "branch": "feat/extract-linkedin-contact-info",
       "adrs": ["008-linkedin-contact-info-modal-extraction.md"]
+    },
+    {
+      "branch": "fix/content-script-not-ready-and-badge-overlay",
+      "adrs": ["009-content-script-retry-with-backoff.md"]
     }
   ]
 }

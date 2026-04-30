@@ -32,6 +32,28 @@ import type {
   UpdatePersonFieldResponse,
 } from './types/index.js';
 
+/**
+ * Send a message to a content script with retry logic
+ * Retries with exponential backoff when content script is not ready
+ */
+async function sendMessageWithRetry<T>(
+  tabId: number,
+  message: unknown,
+  retryDelays: number[] = TIMING.BADGE_RETRY_DELAYS
+): Promise<T> {
+  try {
+    return await chrome.tabs.sendMessage(tabId, message) as T;
+  } catch (error) {
+    if (retryDelays.length === 0) {
+      throw error;
+    }
+    const [delay, ...remainingDelays] = retryDelays;
+    log.background('Content script not ready, retrying in %dms...', delay);
+    await new Promise(resolve => setTimeout(resolve, delay));
+    return sendMessageWithRetry(tabId, message, remainingDelays);
+  }
+}
+
 function toPersonValues(values: unknown): AttioPersonValues {
   const v = values as {
     name?: Array<{ full_name?: string; first_name?: string }>;
@@ -93,10 +115,9 @@ function getAttributeValue(platform: Platform, profileData: ProfileData): string
  */
 async function updateBadge(tabId: number, state: BadgeState): Promise<void> {
   try {
-    // Use a small dot character for the badge
     await chrome.action.setBadgeText({
       tabId,
-      text: state === BADGE_STATES.NONE ? '' : '\u2022', // bullet point
+      text: state.text,  // Use state.text: '+' for CAPTURABLE, '' for EXISTS/NONE
     });
 
     await chrome.action.setBadgeBackgroundColor({
@@ -129,10 +150,10 @@ async function checkAndUpdateBadge(tabId: number, url: string): Promise<void> {
   }
 
   try {
-    // Try to extract profile data and check if person exists
-    const profileData = await chrome.tabs.sendMessage(tabId, {
+    // Try to extract profile data with retry (content script may not be ready)
+    const profileData = await sendMessageWithRetry<ProfileData>(tabId, {
       action: 'extractProfile',
-    }) as ProfileData;
+    });
 
     if (!profileData || profileData.error) {
       await updateBadge(tabId, BADGE_STATES.CAPTURABLE);
@@ -156,8 +177,8 @@ async function checkAndUpdateBadge(tabId: number, url: string): Promise<void> {
       await updateBadge(tabId, BADGE_STATES.CAPTURABLE);
     }
   } catch (error) {
-    // Content script may not be ready, show capturable state
-    log.background('Badge check error: %s', (error as Error).message);
+    // Content script may not be ready after all retries, show capturable state
+    log.background('Badge check error (after retries): %s', (error as Error).message);
     await updateBadge(tabId, BADGE_STATES.CAPTURABLE);
   }
 }
@@ -236,15 +257,15 @@ async function handleCheckPerson(platform: Platform, tabId: number, tabUrl?: str
       return { exists: false, error: t('error.notAuthenticated') };
     }
 
-    // Extract profile data from page
+    // Extract profile data from page with retry for content script readiness
     log.background('Extracting profile data from tab: %d', tabId);
     let profileData: ProfileData | null = null;
     let contentScriptAvailable = true;
 
     try {
-      profileData = await chrome.tabs.sendMessage(tabId, {
+      profileData = await sendMessageWithRetry<ProfileData>(tabId, {
         action: 'extractProfile',
-      }) as ProfileData;
+      });
 
       if (profileData?.error) {
         log.background('Content script returned error: %s', profileData.error);
@@ -252,7 +273,7 @@ async function handleCheckPerson(platform: Platform, tabId: number, tabUrl?: str
         contentScriptAvailable = false;
       }
     } catch (msgError) {
-      log.background('Failed to message content script: %O', msgError);
+      log.background('Failed to message content script (after retries): %O', msgError);
       contentScriptAvailable = false;
     }
 
