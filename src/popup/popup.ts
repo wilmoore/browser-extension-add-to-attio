@@ -463,7 +463,7 @@ async function updateAuthState(): Promise<void> {
   }
 }
 
-async function checkCurrentPage(): Promise<void> {
+async function checkCurrentPage(isRetry = false): Promise<void> {
   showState(loadingState);
 
   try {
@@ -490,6 +490,13 @@ async function checkCurrentPage(): Promise<void> {
       tabId: tab.id,
       tabUrl: tab.url,
     }) as CheckPersonResponse;
+
+    // Auto-retry once if content script unavailable and not already a retry
+    if (!isRetry && response?.contentScriptAvailable === false && !response.exists) {
+      log.popup('Content script unavailable, auto-retrying in %dms...', TIMING.POPUP_RETRY_DELAY);
+      await new Promise(resolve => setTimeout(resolve, TIMING.POPUP_RETRY_DELAY));
+      return checkCurrentPage(true);
+    }
 
     if (!response) {
       showMessage(t('popup.msg.checkFailed'), 'error');
