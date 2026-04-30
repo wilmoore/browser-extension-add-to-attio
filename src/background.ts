@@ -130,6 +130,8 @@ async function updateBadge(tabId: number, state: BadgeState): Promise<void> {
       iconPaths = EXTENSION_ICONS.EXISTS_WITH_UPDATES;
     } else if (state === BADGE_STATES.CAPTURABLE) {
       iconPaths = EXTENSION_ICONS.CAPTURABLE;
+    } else if (state === BADGE_STATES.LOADING) {
+      iconPaths = EXTENSION_ICONS.LOADING;
     } else {
       iconPaths = EXTENSION_ICONS.DEFAULT;
     }
@@ -510,6 +512,9 @@ async function handleCaptureProfile(
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   // Only act on completed navigation with a URL
   if (changeInfo.status === 'complete' && tab.url) {
+    // Immediately show LOADING icon while checking
+    updateBadge(tabId, BADGE_STATES.LOADING);
+
     // Small delay to let content script initialize
     setTimeout(() => {
       checkAndUpdateBadge(tabId, tab.url!);
@@ -524,6 +529,8 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
   try {
     const tab = await chrome.tabs.get(activeInfo.tabId);
     if (tab.url) {
+      // Immediately show LOADING icon while checking
+      await updateBadge(activeInfo.tabId, BADGE_STATES.LOADING);
       checkAndUpdateBadge(activeInfo.tabId, tab.url);
     }
   } catch (error) {
