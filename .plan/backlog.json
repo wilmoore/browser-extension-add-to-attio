@@ -1,6 +1,19 @@
 {
-  "lastSequence": 22,
+  "lastSequence": 23,
   "items": [
+    {
+      "id": 23,
+      "title": "No visual indicator for existing contacts until popup opened",
+      "description": "Bug: Extension icon shows + badge for ALL profiles (both new and existing). No differentiation until popup is opened. This defeats the purpose of the badge as a quick status indicator.\n\nRepro steps:\n1. Navigate to a LinkedIn profile that exists in Attio\n2. Observe extension icon shows + badge (same as new contacts)\n3. Click icon to open popup\n4. Only then does it show 'Existing' status\n\nExpected: Icon should visually indicate NEW vs EXISTS before clicking\nActual: Same + badge for all profiles\n\nSolution: Use two different extension icons (+ for capturable, person-with-checkmark for exists) instead of badge overlays",
+      "category": "bug",
+      "severity": "high",
+      "fingerprint": "bug|23|existing-contact-badge-indicator",
+      "source": "/pro:bug",
+      "sourceBranch": "fix/existing-contact-badge-indicator",
+      "createdAt": "2026-04-30T13:00:00Z",
+      "status": "resolved",
+      "resolvedAt": "2026-04-30T18:55:00Z"
+    },
     {
       "id": 22,
       "title": "Extract LinkedIn contact info and enhance existing contact UI",
