@@ -412,6 +412,18 @@ function renderDiffRows(attioValues: AttioPersonValues, profileData: ProfileData
     updateAllBtn.classList.add('hidden');
   }
 
+  // Create toggle header
+  const toggle = document.createElement('div');
+  toggle.className = 'diff-toggle';
+  toggle.innerHTML = `
+    <span class="diff-toggle-icon">▼</span>
+    <span class="diff-toggle-text">${diffs.length} ${diffs.length === 1 ? 'field' : 'fields'} with updates</span>
+  `;
+
+  // Create expandable container
+  const expanded = document.createElement('div');
+  expanded.className = 'diff-expanded';
+
   for (const diff of diffs) {
     const row = document.createElement('div');
     row.className = 'diff-row';
@@ -441,13 +453,29 @@ function renderDiffRows(attioValues: AttioPersonValues, profileData: ProfileData
     skipBtn.addEventListener('click', () => {
       skippedFields.add(diff.field);
       row.remove();
-      if (diffList.children.length === 0) {
+      // Update count after skip
+      const remainingRows = expanded.querySelectorAll('.diff-row').length;
+      const toggleText = toggle.querySelector('.diff-toggle-text') as HTMLElement;
+      if (remainingRows === 0) {
+        toggle.remove();
+        expanded.remove();
         updateAllBtn.classList.add('hidden');
+      } else {
+        toggleText.textContent = `${remainingRows} ${remainingRows === 1 ? 'field' : 'fields'} with updates`;
       }
     });
 
-    diffList.appendChild(row);
+    expanded.appendChild(row);
   }
+
+  // Toggle click handler
+  toggle.addEventListener('click', () => {
+    toggle.classList.toggle('expanded');
+    expanded.classList.toggle('visible');
+  });
+
+  diffList.appendChild(toggle);
+  diffList.appendChild(expanded);
 }
 
 async function updateAuthState(): Promise<void> {
