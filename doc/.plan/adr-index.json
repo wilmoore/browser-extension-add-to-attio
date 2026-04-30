@@ -1,5 +1,5 @@
 {
-  "lastSequence": 10,
+  "lastSequence": 11,
   "entries": [
     {
       "branch": "feat/linkedin-contact-info-extraction",
@@ -7,6 +7,18 @@
       "adrs": [],
       "note": "No new ADRs were needed for this change (selector updates only; ADR-008 already covers contact-info modal extraction).",
       "createdAt": "2026-04-30T19:32:00Z"
+    },
+    {
+      "branch": "fix/linkedin-contact-info-missing-fields",
+      "branchSlug": "fix-linkedin-contact-info-missing-fields",
+      "adrs": [
+        {
+          "number": 11,
+          "file": "doc/decisions/011-non-interactive-profile-extraction.md",
+          "title": "Non-Interactive Profile Extraction for Badge Checks"
+        }
+      ],
+      "createdAt": "2026-04-30T21:22:43Z"
     }
   ]
 }

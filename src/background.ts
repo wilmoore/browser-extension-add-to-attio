@@ -181,6 +181,8 @@ async function checkAndUpdateBadge(tabId: number, url: string): Promise<void> {
     // Try to extract profile data with retry (content script may not be ready)
     const profileData = await sendMessageWithRetry<ProfileData>(tabId, {
       action: 'extractProfile',
+      // Badge checks should be non-interactive; avoid opening/closing LinkedIn modals.
+      includeContactInfo: false,
     });
 
     if (!profileData || profileData.error) {
@@ -303,10 +305,12 @@ async function handleCheckPerson(platform: Platform, tabId: number, tabUrl?: str
     let profileData: ProfileData | null = null;
     let contentScriptAvailable = true;
 
-    try {
-      profileData = await sendMessageWithRetry<ProfileData>(tabId, {
-        action: 'extractProfile',
-      });
+      try {
+        profileData = await sendMessageWithRetry<ProfileData>(tabId, {
+          action: 'extractProfile',
+          // Popup flow: include richer fields when available.
+          includeContactInfo: true,
+        });
 
       if (profileData?.error) {
         log.background('Content script returned error: %s', profileData.error);
@@ -442,6 +446,8 @@ async function handleCaptureProfile(
     // Send message to content script to extract profile data
     const profileData = await chrome.tabs.sendMessage(tabId, {
       action: 'extractProfile',
+      // Capture flow: include richer fields when available.
+      includeContactInfo: true,
     }) as ProfileData;
 
     if (!profileData || profileData.error) {

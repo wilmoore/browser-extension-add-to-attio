@@ -155,7 +155,7 @@ export const LINKEDIN_CONTACT_INFO_SELECTORS = {
     'button[aria-label="Close"]',
     'button.artdeco-modal__dismiss',
     '[data-test-modal-close-btn]',
-    'button[ data-test-modal-close-btn]',
+    'button[data-test-modal-close-btn]',
   ],
   // Email addresses - look for mailto: links or labeled email elements
   email: [
@@ -169,8 +169,8 @@ export const LINKEDIN_CONTACT_INFO_SELECTORS = {
   ],
   // Websites - look for external links (not LinkedIn)
   website: [
-    // Modern LinkedIn - check all anchor tags with http (except LinkedIn)
-    'a[href^="http"]:not([href*="linkedin.com"]):not([href*="localhost"])',
+    // Modern LinkedIn - includes linkedin.com redir links; decode later.
+    'a[href^="http"]',
     // Legacy
     'section.ci-websites a[href^="http"]',
     '.pv-contact-info__ci-container a[href^="http"]:not([href*="linkedin.com"])',
@@ -178,14 +178,9 @@ export const LINKEDIN_CONTACT_INFO_SELECTORS = {
   ],
   // Website label (e.g., "Company", "Personal")
   websiteLabel: [
-    // Try to find label near the link
-    'span[role="link"]',
-    '.website-label',
     // Legacy
     '.pv-contact-info__ci-container .t-black--light',
     '.t-12.t-black--light',
-    // Fallback - look for text before http links
-    'p:has(+ a[href^="http"])',
   ],
   // Connected since date
   connectedSince: [
