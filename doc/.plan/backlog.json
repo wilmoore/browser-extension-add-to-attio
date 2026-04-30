@@ -1,10 +1,10 @@
 {
-  "lastSequence": 2,
+  "lastSequence": 3,
   "items": [
     {
       "id": 1,
       "title": "Refactor Add to Attio sheet to diff-based UI",
-      "description": "Refactor the popup sheet UI to remove redundant sections/buttons, introduce field-level diffing with per-field Update/Skip, improve user-friendly errors while preserving debug detail, and align copy/i18n + TypeScript types with project standards.",
+      "description": "Refactor the popup sheet UI to remove redundant sections/buttons, introduce field-level diffing with per-field Update/Skip, improve user-friendly errors while preserve debug detail, and align copy/i18n + TypeScript types with project standards.",
       "category": "debt",
       "severity": "medium",
       "fingerprint": "debt|1|refactor-add-to-attio-sheet-diff-based-ui",
@@ -23,7 +23,21 @@
       "source": "/pro:feature",
       "sourceBranch": "feat/loading-icon-no-indicator",
       "createdAt": "2026-04-30T12:00:00Z",
+      "status": "completed"
+    },
+    {
+      "id": 3,
+      "title": "Make review UI compact with progressive disclosure",
+      "description": "Replace bulky card-based diff rows with a compact, progressive disclosure UI. Initially shows a collapsed header like '3 fields with updates ▼', clicking expands to show field details with Update/Skip buttons. Keeps functionality but improves elegance and space usage.",
+      "category": "feature",
+      "severity": "medium",
+      "fingerprint": "feature|3|compact-review-ui",
+      "source": "/pro:feature",
+      "sourceBranch": "feat/compact-review-ui",
+      "createdAt": "2026-04-30T19:10:00Z",
       "status": "in-progress"
     }
+  ]
+}
   ]
 }

@@ -403,6 +403,55 @@ hr {
   font-weight: 600;
 }
 
+/* Progressive Disclosure Diff */
+.diff-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+  transition: background-color 0.15s;
+}
+
+.diff-toggle:hover {
+  background-color: #f0f0f0;
+}
+
+.diff-toggle-icon {
+  font-size: 10px;
+  transition: transform 0.2s;
+}
+
+.diff-toggle.expanded .diff-toggle-icon {
+  transform: rotate(180deg);
+}
+
+.diff-expanded {
+  display: none;
+  margin-top: 8px;
+}
+
+.diff-expanded.visible {
+  display: block;
+}
+
+.diff-row {
+  padding: 8px 10px;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  background: #fff;
+  margin-bottom: 6px;
+}
+
+.diff-row:last-child {
+  margin-bottom: 0;
+}
+
 /* Contact Summary */
 .contact-summary {
   margin-bottom: 12px;

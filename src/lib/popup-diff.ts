@@ -74,6 +74,9 @@ export function computeFieldDiffs(attio: AttioPersonValues, source: ProfileData)
     // Hide null-to-null.
     if (attioValue == null && sourceValue == null) continue;
 
+    // Don't create diff if source has no value - we don't want to overwrite CRM with empty
+    if (sourceValue == null) continue;
+
     if (valuesDiffer(field, attioValue, sourceValue)) {
       diffs.push({ field, attioValue, sourceValue });
     }
