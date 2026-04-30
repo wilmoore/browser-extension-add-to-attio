@@ -11,7 +11,8 @@
       "source": "/pro:feature",
       "sourceBranch": "feat/extract-linkedin-contact-info-enhance-ui",
       "createdAt": "2026-04-27T00:00:00Z",
-      "status": "in-progress"
+      "status": "resolved",
+      "resolvedAt": "2026-04-30T23:35:00Z"
     },
     {
       "id": 21,
