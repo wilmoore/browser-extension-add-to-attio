@@ -18,8 +18,10 @@ import {
   MATCHING_ATTRIBUTES,
   BADGE_STATES,
   TIMING,
+  EXTENSION_ICONS,
 } from './constants/index.js';
 import { detectPlatformFromUrl, extractMatchingValueFromUrl } from './lib/platform.js';
+import { computeFieldDiffs } from './lib/popup-diff.js';
 import type {
   Platform,
   ProfileData,
@@ -111,13 +113,37 @@ function getAttributeValue(platform: Platform, profileData: ProfileData): string
 }
 
 /**
- * Update the extension badge for a tab
+ * Update the extension icon and badge for a tab
+ * Uses different icons to indicate state:
+ * - EXISTS: Person with green checkmark (up to date in Attio)
+ * - EXISTS_WITH_UPDATES: Person with orange dot (has available updates)
+ * - CAPTURABLE: Person with purple plus (new contact, can be added)
+ * - NONE: Default icon (not a profile page)
  */
 async function updateBadge(tabId: number, state: BadgeState): Promise<void> {
   try {
+    // Select icon based on state
+    let iconPaths: Record<number, string>;
+    if (state === BADGE_STATES.EXISTS) {
+      iconPaths = EXTENSION_ICONS.EXISTS;
+    } else if (state === BADGE_STATES.EXISTS_WITH_UPDATES) {
+      iconPaths = EXTENSION_ICONS.EXISTS_WITH_UPDATES;
+    } else if (state === BADGE_STATES.CAPTURABLE) {
+      iconPaths = EXTENSION_ICONS.CAPTURABLE;
+    } else {
+      iconPaths = EXTENSION_ICONS.DEFAULT;
+    }
+
+    // Swap the extension icon
+    await chrome.action.setIcon({
+      tabId,
+      path: iconPaths,
+    });
+
+    // Clear any badge text (icons now convey state, no text overlay needed)
     await chrome.action.setBadgeText({
       tabId,
-      text: state.text,  // Use state.text: '+' for CAPTURABLE, '' for EXISTS/NONE
+      text: state.text,
     });
 
     await chrome.action.setBadgeBackgroundColor({
@@ -172,7 +198,15 @@ async function checkAndUpdateBadge(tabId: number, url: string): Promise<void> {
     const existingPerson = await findPersonByAttribute(apiKey, attribute, value);
 
     if (existingPerson) {
-      await updateBadge(tabId, BADGE_STATES.EXISTS);
+      // Compute diffs to determine if updates are available
+      const attioValues = toPersonValues(existingPerson.values);
+      const diffs = computeFieldDiffs(attioValues, profileData);
+
+      if (diffs.length > 0) {
+        await updateBadge(tabId, BADGE_STATES.EXISTS_WITH_UPDATES);
+      } else {
+        await updateBadge(tabId, BADGE_STATES.EXISTS);
+      }
     } else {
       await updateBadge(tabId, BADGE_STATES.CAPTURABLE);
     }
@@ -228,8 +262,13 @@ async function buildExistingPersonResponse(
     resolved: existingName,
   });
 
-  // Update badge to show exists
-  await updateBadge(tabId, BADGE_STATES.EXISTS);
+  // Compute diffs to determine badge state
+  const personValues = toPersonValues(existingPerson.values);
+  const diffs = profileData ? computeFieldDiffs(personValues, profileData) : [];
+  const badgeState = diffs.length > 0 ? BADGE_STATES.EXISTS_WITH_UPDATES : BADGE_STATES.EXISTS;
+
+  // Update badge to show exists (with or without updates indicator)
+  await updateBadge(tabId, badgeState);
 
   return {
     exists: true,
@@ -238,7 +277,7 @@ async function buildExistingPersonResponse(
       name: existingName,
       attioUrl,
     } : undefined,
-    personValues: toPersonValues(existingPerson.values),
+    personValues,
     profileData: profileData ?? undefined,
     contentScriptAvailable,
   };

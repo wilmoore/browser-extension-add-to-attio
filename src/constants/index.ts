@@ -21,11 +21,41 @@ export const MATCHING_ATTRIBUTES: Record<Platform, string> = {
   reddit: 'name', // Reddit doesn't have a dedicated field, use name
 };
 
-// Badge states for extension icon
+// Badge states for extension icon (all use icon-based indication, no text badges)
 export const BADGE_STATES: Record<string, BadgeState> = {
-  EXISTS: { text: '', color: [0, 0, 0, 0] as [number, number, number, number] },     // No badge - person already in Attio
-  CAPTURABLE: { text: '+', color: '#6366f1' },  // Purple + indicator - can capture profile
-  NONE: { text: '', color: [0, 0, 0, 0] as [number, number, number, number] },       // No badge
+  EXISTS: { text: '', color: [0, 0, 0, 0] as [number, number, number, number] },              // Person + green checkmark
+  EXISTS_WITH_UPDATES: { text: '', color: [0, 0, 0, 0] as [number, number, number, number] }, // Person + orange dot
+  CAPTURABLE: { text: '', color: [0, 0, 0, 0] as [number, number, number, number] },          // Person + purple plus
+  NONE: { text: '', color: [0, 0, 0, 0] as [number, number, number, number] },                // Default icon (no badge)
+};
+
+// Extension icon paths for different states
+// All states use person silhouette with different badge indicators
+export const EXTENSION_ICONS = {
+  // Default icon (original + in square) - for NONE state (non-profile pages)
+  DEFAULT: {
+    16: 'icons/icon-16.png',
+    48: 'icons/icon-48.png',
+    128: 'icons/icon-128.png',
+  },
+  // CAPTURABLE icon (person + purple plus) - new contact can be added
+  CAPTURABLE: {
+    16: 'icons/icon-capturable-16.png',
+    48: 'icons/icon-capturable-48.png',
+    128: 'icons/icon-capturable-128.png',
+  },
+  // EXISTS icon (person + green checkmark) - contact in Attio, up to date
+  EXISTS: {
+    16: 'icons/icon-exists-16.png',
+    48: 'icons/icon-exists-48.png',
+    128: 'icons/icon-exists-128.png',
+  },
+  // EXISTS_WITH_UPDATES icon (person + orange dot) - contact has available updates
+  EXISTS_WITH_UPDATES: {
+    16: 'icons/icon-updates-16.png',
+    48: 'icons/icon-updates-48.png',
+    128: 'icons/icon-updates-128.png',
+  },
 };
 
 // Non-profile paths to skip on Twitter/X

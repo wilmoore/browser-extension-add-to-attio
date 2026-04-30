@@ -8,6 +8,7 @@ import {
   PLATFORM_PATTERNS,
   MATCHING_ATTRIBUTES,
   BADGE_STATES,
+  EXTENSION_ICONS,
   TWITTER_NON_PROFILE_PATHS,
   LINKEDIN_SELECTORS,
   TWITTER_SELECTORS,
@@ -81,13 +82,28 @@ describe('BADGE_STATES', () => {
     expect(BADGE_STATES.EXISTS.text).toBe('');
   });
 
-  it('has CAPTURABLE state with purple color and + indicator', () => {
-    expect(BADGE_STATES.CAPTURABLE.color).toBe('#6366f1');
-    expect(BADGE_STATES.CAPTURABLE.text).toBe('+');
+  it('has CAPTURABLE state with no badge (icon indicates state)', () => {
+    // Badge text is empty - the extension icon itself indicates capturable state
+    expect(BADGE_STATES.CAPTURABLE.color).toEqual([0, 0, 0, 0]);
+    expect(BADGE_STATES.CAPTURABLE.text).toBe('');
   });
 
   it('has NONE state with transparent color', () => {
     expect(BADGE_STATES.NONE.color).toEqual([0, 0, 0, 0]);
+  });
+});
+
+describe('EXTENSION_ICONS', () => {
+  it('has DEFAULT icons for all sizes (capturable state)', () => {
+    expect(EXTENSION_ICONS.DEFAULT[16]).toBe('icons/icon-16.png');
+    expect(EXTENSION_ICONS.DEFAULT[48]).toBe('icons/icon-48.png');
+    expect(EXTENSION_ICONS.DEFAULT[128]).toBe('icons/icon-128.png');
+  });
+
+  it('has EXISTS icons for all sizes (contact in Attio)', () => {
+    expect(EXTENSION_ICONS.EXISTS[16]).toBe('icons/icon-exists-16.png');
+    expect(EXTENSION_ICONS.EXISTS[48]).toBe('icons/icon-exists-48.png');
+    expect(EXTENSION_ICONS.EXISTS[128]).toBe('icons/icon-exists-128.png');
   });
 });
 

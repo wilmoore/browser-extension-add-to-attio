@@ -1,0 +1,24 @@
+{
+  "attempts": [
+    {
+      "timestamp": "2026-04-30T18:45:11Z",
+      "tool": "Bash",
+      "error": "cd /Users/wilmooreiii/Documents/src/browser-extension-add-to-attio/public/icons && \\\nmagick -background none icon-capturable-source.svg -resize 16x16 icon-capturable-16.png && \\\nmagick -background non",
+      "status": "unresolved"
+    },
+    {
+      "timestamp": "2026-04-30T18:45:18Z",
+      "tool": "Bash",
+      "error": "cd /Users/wilmooreiii/Documents/src/browser-extension-add-to-attio/public/icons && \\\nconvert -background none icon-capturable-source.svg -resize 16x16 icon-capturable-16.png && \\\nconvert -background n",
+      "status": "unresolved"
+    },
+    {
+      "timestamp": "2026-04-30T18:49:40Z",
+      "tool": "Bash",
+      "error": "npm run lint 2>&1",
+      "status": "unresolved"
+    }
+  ],
+  "strikeCount": 1,
+  "lastErrorHash": "c6945974"
+}
