@@ -170,6 +170,11 @@ export interface CaptureProfileMessage {
 
 export interface ExtractProfileMessage {
   action: 'extractProfile';
+  /**
+   * When false, the content script should avoid expensive/interactive extraction
+   * (e.g., auto-opening LinkedIn Contact info modal). Default is true.
+   */
+  includeContactInfo?: boolean;
 }
 
 export interface ShowFeedbackMessage {

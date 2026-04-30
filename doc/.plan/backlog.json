@@ -1,5 +1,5 @@
 {
-  "lastSequence": 4,
+  "lastSequence": 5,
   "items": [
     {
       "id": 1,
@@ -47,6 +47,18 @@
       "source": "/pro:feature",
       "sourceBranch": "feat/linkedin-contact-info-extraction",
       "createdAt": "2026-04-30T19:20:00Z",
+      "status": "completed"
+    },
+    {
+      "id": 5,
+      "title": "Fix LinkedIn contact info missing fields and modal flashing",
+      "description": "Intermittently, when the LinkedIn Contact info modal is already open and the user clicks the Add to Attio extension icon, the Contact info modal appears to rapidly open/close (flashing). Additionally, the extension sometimes fails to capture website and connected-since (and all emails/websites) even though they are visible in the Contact info modal.\n\nSteps to reproduce (intermittent):\n1. Open a LinkedIn profile (1st-degree connection)\n2. Open the LinkedIn 'Contact info' modal\n3. Click the Add to Attio extension icon\n4. Observe that sometimes the modal begins flashing (opening/closing repeatedly)\n\nExpected: The extension should not cause the modal to flash; it should reliably extract all emails, all websites, and connected-since from the modal when requested.\n\nActual: Modal sometimes flashes; popup shows 'No website' and may miss connected-since despite being present in the modal.",
+      "category": "bug",
+      "severity": "high",
+      "fingerprint": "bug|5|linkedin-contact-info-missing-fields",
+      "source": "/pro:bug",
+      "sourceBranch": "fix/linkedin-contact-info-missing-fields",
+      "createdAt": "2026-04-30T19:45:00Z",
       "status": "in-progress"
     }
   ]

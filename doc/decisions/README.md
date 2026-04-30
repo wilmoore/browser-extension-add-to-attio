@@ -28,3 +28,4 @@ We use the [Michael Nygard format](https://cognitect.com/blog/2011/11/15/documen
 - [008. LinkedIn Contact Info Modal Extraction](008-linkedin-contact-info-modal-extraction.md)
 - [009. Content Script Retry with Exponential Backoff](009-content-script-retry-with-backoff.md)
 - [010. Icon-Based State Indication](010-icon-based-state-indication.md)
+- [011. Non-Interactive Profile Extraction for Badge Checks](011-non-interactive-profile-extraction.md)

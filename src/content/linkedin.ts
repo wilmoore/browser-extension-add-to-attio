@@ -16,6 +16,59 @@ interface ContactInfo {
   connectedSince: string | null;
 }
 
+// In-flight guards to prevent concurrent modal open/close loops.
+let inflightBasicExtract: Promise<ProfileData> | null = null;
+let inflightFullExtract: Promise<ProfileData> | null = null;
+
+export function decodeLinkedInRedirectUrl(href: string): string {
+  try {
+    const url = new URL(href);
+
+    // LinkedIn commonly wraps external URLs like:
+    // https://www.linkedin.com/redir/redirect?url=<encoded>
+    if (url.hostname.endsWith('linkedin.com') && url.pathname.includes('/redir/redirect')) {
+      const encoded = url.searchParams.get('url');
+      if (encoded) return decodeURIComponent(encoded);
+    }
+
+    // Some variants use `url=` but not the /redir path.
+    const encoded = url.searchParams.get('url');
+    if (encoded && url.hostname.endsWith('linkedin.com')) {
+      const decoded = decodeURIComponent(encoded);
+      // Only treat it as redirect if it looks like a URL.
+      if (/^https?:\/\//i.test(decoded)) return decoded;
+    }
+  } catch {
+    // Ignore URL parse issues, fall back.
+  }
+
+  return href;
+}
+
+function safeQuerySelector(root: ParentNode, selector: string): Element | null {
+  try {
+    return root.querySelector(selector);
+  } catch {
+    return null;
+  }
+}
+
+function safeQuerySelectorAll(root: ParentNode, selector: string): Element[] {
+  try {
+    return Array.from(root.querySelectorAll(selector));
+  } catch {
+    return [];
+  }
+}
+
+function findOpenContactInfoModal(): Element | null {
+  for (const selector of LINKEDIN_CONTACT_INFO_SELECTORS.modal) {
+    const el = safeQuerySelector(document, selector);
+    if (el) return el;
+  }
+  return null;
+}
+
 /**
  * Wait for an element to appear in the DOM
  */
@@ -23,7 +76,7 @@ function waitForElement(selectors: string[], timeout = TIMING.MODAL_WAIT_TIMEOUT
   return new Promise((resolve) => {
     // Check if already exists
     for (const selector of selectors) {
-      const element = document.querySelector(selector);
+      const element = safeQuerySelector(document, selector);
       if (element) {
         resolve(element);
         return;
@@ -33,7 +86,7 @@ function waitForElement(selectors: string[], timeout = TIMING.MODAL_WAIT_TIMEOUT
     const startTime = Date.now();
     const interval = setInterval(() => {
       for (const selector of selectors) {
-        const element = document.querySelector(selector);
+        const element = safeQuerySelector(document, selector);
         if (element) {
           clearInterval(interval);
           resolve(element);
@@ -54,7 +107,7 @@ function waitForElement(selectors: string[], timeout = TIMING.MODAL_WAIT_TIMEOUT
  */
 function clickContactInfoLink(): boolean {
   for (const selector of LINKEDIN_CONTACT_INFO_SELECTORS.triggerLink) {
-    const link = document.querySelector(selector) as HTMLElement | null;
+    const link = safeQuerySelector(document, selector) as HTMLElement | null;
     if (link) {
       log.linkedin('Clicking contact info link: %s', selector);
       link.click();
@@ -70,7 +123,7 @@ function clickContactInfoLink(): boolean {
  */
 function closeContactInfoModal(): void {
   for (const selector of LINKEDIN_CONTACT_INFO_SELECTORS.closeButton) {
-    const closeBtn = document.querySelector(selector) as HTMLElement | null;
+    const closeBtn = safeQuerySelector(document, selector) as HTMLElement | null;
     if (closeBtn) {
       log.linkedin('Closing modal with: %s', selector);
       closeBtn.click();
@@ -85,14 +138,14 @@ function closeContactInfoModal(): void {
 /**
  * Extract contact info from the open modal
  */
-function extractContactInfoFromModal(): ContactInfo {
+function extractContactInfoFromModal(modalRoot: Element): ContactInfo {
   const emails: string[] = [];
   const websites: WebsiteEntry[] = [];
   let connectedSince: string | null = null;
 
   // Extract emails from mailto: links
   for (const selector of LINKEDIN_CONTACT_INFO_SELECTORS.email) {
-    const emailLinks = document.querySelectorAll(selector);
+    const emailLinks = safeQuerySelectorAll(modalRoot, selector);
     emailLinks.forEach((link) => {
       const href = (link as HTMLAnchorElement).href;
       if (href?.startsWith('mailto:')) {
@@ -105,18 +158,54 @@ function extractContactInfoFromModal(): ContactInfo {
     });
   }
 
+  function extractLabeledValue(label: string): string | null {
+    const normalizedLabel = label.trim().toLowerCase();
+    const candidates = safeQuerySelectorAll(modalRoot, 'h3, h2, span, dt, strong');
+    for (const el of candidates) {
+      const text = el.textContent?.trim().toLowerCase() ?? '';
+      if (text !== normalizedLabel) continue;
+
+      const container = el.closest('section, li, div') ?? el.parentElement;
+      if (!container) continue;
+
+      // Prefer a sibling/time element first.
+      const siblingText = el.nextElementSibling?.textContent?.trim();
+      if (siblingText) return siblingText;
+
+      const timeEl = safeQuerySelector(container, 'time');
+      const timeText = timeEl?.textContent?.trim();
+      if (timeText) return timeText;
+
+      // Fall back: find first meaningful text in container that isn't the label.
+      const leafs = safeQuerySelectorAll(container, 'span, a, time');
+      for (const leaf of leafs) {
+        const v = leaf.textContent?.trim();
+        if (!v) continue;
+        if (v.toLowerCase() === normalizedLabel) continue;
+        return v;
+      }
+    }
+    return null;
+  }
+
   // Extract websites
   for (const selector of LINKEDIN_CONTACT_INFO_SELECTORS.website) {
-    const websiteLinks = document.querySelectorAll(selector);
+    const websiteLinks = safeQuerySelectorAll(modalRoot, selector);
     websiteLinks.forEach((link) => {
-      const href = (link as HTMLAnchorElement).href;
-      if (href && !href.includes('linkedin.com')) {
+      const rawHref = (link as HTMLAnchorElement).href;
+      if (rawHref) {
+        const href = decodeLinkedInRedirectUrl(rawHref);
+
+        // Filter out LinkedIn internal URLs after decoding.
+        if (href.includes('linkedin.com')) return;
+        if (!/^https?:\/\//i.test(href)) return;
+
         // Try to find a label near this link
         const parent = link.closest('section, li, div.pv-contact-info__ci-container');
         let label: string | undefined;
         if (parent) {
           for (const labelSelector of LINKEDIN_CONTACT_INFO_SELECTORS.websiteLabel) {
-            const labelEl = parent.querySelector(labelSelector);
+            const labelEl = safeQuerySelector(parent, labelSelector);
             if (labelEl) {
               const labelText = labelEl.textContent?.trim();
               // Filter out generic labels
@@ -138,17 +227,10 @@ function extractContactInfoFromModal(): ContactInfo {
   }
 
   // Extract connected since date
-  for (const selector of LINKEDIN_CONTACT_INFO_SELECTORS.connectedSince) {
-    const element = document.querySelector(selector);
-    if (element) {
-      const text = element.textContent?.trim();
-      // Look for date patterns like "Apr 4, 2026" or "Connected since Apr 2026"
-      if (text && /\d{4}/.test(text)) {
-        connectedSince = text;
-        log.linkedin('Found connected since: %s', connectedSince);
-        break;
-      }
-    }
+  const connectedSinceValue = extractLabeledValue('Connected since');
+  if (connectedSinceValue && /\d{4}/.test(connectedSinceValue)) {
+    connectedSince = connectedSinceValue;
+    log.linkedin('Found connected since: %s', connectedSince);
   }
 
   return { emails, websites, connectedSince };
@@ -158,28 +240,37 @@ function extractContactInfoFromModal(): ContactInfo {
  * Auto-open contact info modal, extract data, and close it
  */
 async function extractContactInfo(): Promise<ContactInfo | null> {
-  // Check if contact info link exists
-  let hasLink = false;
-  for (const selector of LINKEDIN_CONTACT_INFO_SELECTORS.triggerLink) {
-    if (document.querySelector(selector)) {
-      hasLink = true;
-      break;
-    }
-  }
-
-  if (!hasLink) {
-    log.linkedin('Contact info link not available (likely not a 1st degree connection)');
-    return null;
-  }
+  // If modal is already open, avoid clicking/closing (prevents flashing loops).
+  const existingModal = findOpenContactInfoModal();
+  const alreadyOpen = Boolean(existingModal);
 
   try {
-    // Click to open modal
-    if (!clickContactInfoLink()) {
-      return null;
+    let modal: Element | null = existingModal;
+
+    if (!modal) {
+      // Check if contact info link exists
+      let hasLink = false;
+      for (const selector of LINKEDIN_CONTACT_INFO_SELECTORS.triggerLink) {
+        if (safeQuerySelector(document, selector)) {
+          hasLink = true;
+          break;
+        }
+      }
+
+      if (!hasLink) {
+        log.linkedin('Contact info link not available (likely not a 1st degree connection)');
+        return null;
+      }
+
+      // Click to open modal
+      if (!clickContactInfoLink()) {
+        return null;
+      }
+
+      // Wait for modal to appear
+      modal = await waitForElement(LINKEDIN_CONTACT_INFO_SELECTORS.modal);
     }
 
-    // Wait for modal to appear
-    const modal = await waitForElement(LINKEDIN_CONTACT_INFO_SELECTORS.modal);
     if (!modal) {
       log.linkedin('Modal did not appear within timeout');
       return null;
@@ -189,11 +280,13 @@ async function extractContactInfo(): Promise<ContactInfo | null> {
     await new Promise(resolve => setTimeout(resolve, 200));
 
     // Extract data
-    const contactInfo = extractContactInfoFromModal();
+    const contactInfo = extractContactInfoFromModal(modal);
 
-    // Close modal
-    await new Promise(resolve => setTimeout(resolve, TIMING.MODAL_CLOSE_DELAY));
-    closeContactInfoModal();
+    // Close modal only if we opened it.
+    if (!alreadyOpen) {
+      await new Promise(resolve => setTimeout(resolve, TIMING.MODAL_CLOSE_DELAY));
+      closeContactInfoModal();
+    }
 
     log.linkedin('Extracted contact info: %O', {
       emailCount: contactInfo.emails.length,
@@ -397,6 +490,13 @@ async function extractLinkedInProfileWithContactInfo(): Promise<ProfileData> {
   return profileData;
 }
 
+async function extractLinkedInProfileWithOptions(includeContactInfo: boolean): Promise<ProfileData> {
+  if (!includeContactInfo) {
+    return extractLinkedInProfile();
+  }
+  return extractLinkedInProfileWithContactInfo();
+}
+
 /**
  * Message listener
  */
@@ -407,14 +507,33 @@ chrome.runtime.onMessage.addListener(
     sendResponse: (response: ProfileData | { received: boolean }) => void
   ) => {
     if (message.action === 'extractProfile') {
-      // Use async extraction with contact info
-      extractLinkedInProfileWithContactInfo()
-        .then(sendResponse)
-        .catch((error) => {
-          log.linkedin('Async extraction error: %O', error);
-          // Fall back to sync extraction
-          sendResponse(extractLinkedInProfile());
+      const includeContactInfo = (message as ExtractProfileMessage).includeContactInfo !== false;
+
+      const getOrStart = (include: boolean): Promise<ProfileData> => {
+        const existing = include ? inflightFullExtract : inflightBasicExtract;
+        if (existing) return existing;
+
+        const p = (async () => extractLinkedInProfileWithOptions(include))();
+        if (include) inflightFullExtract = p;
+        else inflightBasicExtract = p;
+
+        void p.finally(() => {
+          // Only clear if we haven't been replaced by a newer in-flight promise.
+          if (include) {
+            if (inflightFullExtract === p) inflightFullExtract = null;
+          } else {
+            if (inflightBasicExtract === p) inflightBasicExtract = null;
+          }
         });
+
+        return p;
+      };
+
+      getOrStart(includeContactInfo).then(sendResponse).catch((error) => {
+        log.linkedin('Async extraction error: %O', error);
+        // Fall back to sync extraction
+        sendResponse(extractLinkedInProfile());
+      });
       return true; // Keep message channel open for async response
     }
 
