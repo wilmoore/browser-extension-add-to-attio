@@ -27,6 +27,7 @@ export const BADGE_STATES: Record<string, BadgeState> = {
   EXISTS_WITH_UPDATES: { text: '', color: [0, 0, 0, 0] as [number, number, number, number] }, // Person + orange dot
   CAPTURABLE: { text: '', color: [0, 0, 0, 0] as [number, number, number, number] },          // Person + purple plus
   NONE: { text: '', color: [0, 0, 0, 0] as [number, number, number, number] },                // Default icon (no badge)
+  LOADING: { text: '', color: [0, 0, 0, 0] as [number, number, number, number] },             // Person icon (no indicator) - loading state
 };
 
 // Extension icon paths for different states
@@ -55,6 +56,12 @@ export const EXTENSION_ICONS = {
     16: 'icons/icon-updates-16.png',
     48: 'icons/icon-updates-48.png',
     128: 'icons/icon-updates-128.png',
+  },
+  // LOADING icon (person silhouette, no indicator) - shown while checking state
+  LOADING: {
+    16: 'icons/icon-loading-16.png',
+    48: 'icons/icon-loading-48.png',
+    128: 'icons/icon-loading-128.png',
   },
 };
 

@@ -1,5 +1,5 @@
 {
-  "lastSequence": 1,
+  "lastSequence": 2,
   "items": [
     {
       "id": 1,
@@ -11,6 +11,18 @@
       "source": "/pro:refactor",
       "sourceBranch": "refactor/add-to-attio-sheet-diff-based-ui",
       "createdAt": "2026-04-01T07:28:02Z",
+      "status": "in-progress"
+    },
+    {
+      "id": 2,
+      "title": "Add LOADING state icon for profile check in progress",
+      "description": "When the extension is checking if a person exists in Attio (during page load or tab switch), show a person silhouette icon without any status indicator instead of the default plus icon. This provides better visual feedback while the state is being determined.",
+      "category": "feature",
+      "severity": "medium",
+      "fingerprint": "feature|2|loading-icon-no-indicator",
+      "source": "/pro:feature",
+      "sourceBranch": "feat/loading-icon-no-indicator",
+      "createdAt": "2026-04-30T12:00:00Z",
       "status": "in-progress"
     }
   ]
