@@ -1,5 +1,5 @@
 {
-  "lastSequence": 3,
+  "lastSequence": 4,
   "items": [
     {
       "id": 1,
@@ -11,7 +11,7 @@
       "source": "/pro:refactor",
       "sourceBranch": "refactor/add-to-attio-sheet-diff-based-ui",
       "createdAt": "2026-04-01T07:28:02Z",
-      "status": "in-progress"
+      "status": "completed"
     },
     {
       "id": 2,
@@ -35,9 +35,19 @@
       "source": "/pro:feature",
       "sourceBranch": "feat/compact-review-ui",
       "createdAt": "2026-04-30T19:10:00Z",
+      "status": "completed"
+    },
+    {
+      "id": 4,
+      "title": "Fix LinkedIn contact info modal extraction",
+      "description": "LinkedIn contact info extraction was implemented (ADR-008) but the selectors are outdated. The contact info modal on LinkedIn profile pages shows email, website, and other info but the selectors don't match the current LinkedIn UI. Need to update selectors to match current LinkedIn HTML structure.",
+      "category": "bug",
+      "severity": "high",
+      "fingerprint": "bug|4|linkedin-contact-info-selectors",
+      "source": "/pro:feature",
+      "sourceBranch": "feat/linkedin-contact-info-extraction",
+      "createdAt": "2026-04-30T19:20:00Z",
       "status": "in-progress"
     }
-  ]
-}
   ]
 }

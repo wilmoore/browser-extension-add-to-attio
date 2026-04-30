@@ -114,9 +114,15 @@ export const LINKEDIN_SELECTORS = {
   ],
   // Contact info link (to detect if visible for 1st degree connections)
   contactInfoLink: [
+    // Modern LinkedIn - about section contact info
+    'a[href*="contact-info"]',
+    // Legacy
     'a[href="#"][data-control-name="contact_see_more"]',
     'a#top-card-text-details-contact-info',
     'a[href*="overlay/contact-info"]',
+    // Fallback - any link/button in about section
+    '[data-test-id="about-section"] a',
+    '.pv-about-section a',
   ],
 };
 
@@ -125,41 +131,68 @@ export const LINKEDIN_SELECTORS = {
 export const LINKEDIN_CONTACT_INFO_SELECTORS = {
   // Link that opens the contact info modal
   triggerLink: [
+    // Modern LinkedIn - Contact info in About section
+    'a[href*="contact-info"]',
+    'button[aria-label*="Contact"]',
+    // Legacy selectors
     'a[href*="overlay/contact-info"]',
     'a#top-card-text-details-contact-info',
     '[data-control-name="contact_see_more"]',
   ],
   // Modal container detection
   modal: [
+    // Modern LinkedIn modal
+    '[role="dialog"][aria-label*="Contact"]',
     '.artdeco-modal',
+    '[data-test-modal]', 
+    // Legacy
     '[role="dialog"]',
     '.pv-contact-info',
   ],
   // Close button for modal
   closeButton: [
+    'button[aria-label="Dismiss"]',
+    'button[aria-label="Close"]',
     'button.artdeco-modal__dismiss',
     '[data-test-modal-close-btn]',
-    'button[aria-label="Dismiss"]',
+    'button[ data-test-modal-close-btn]',
   ],
-  // Email addresses - look for mailto: links
+  // Email addresses - look for mailto: links or labeled email elements
   email: [
+    // Modern - any link with mailto
     'a[href^="mailto:"]',
+    // Legacy
     'section.ci-email a',
     '.pv-contact-info__ci-container a[href^="mailto:"]',
+    // Fallback - look in any section that might contain email
+    '.contact-info-section a[href^="mailto:"]',
   ],
   // Websites - look for external links (not LinkedIn)
   website: [
+    // Modern LinkedIn - check all anchor tags with http (except LinkedIn)
+    'a[href^="http"]:not([href*="linkedin.com"]):not([href*="localhost"])',
+    // Legacy
     'section.ci-websites a[href^="http"]',
     '.pv-contact-info__ci-container a[href^="http"]:not([href*="linkedin.com"])',
     '.ci-vanity-url a[href^="http"]:not([href*="linkedin.com"])',
   ],
   // Website label (e.g., "Company", "Personal")
   websiteLabel: [
+    // Try to find label near the link
+    'span[role="link"]',
+    '.website-label',
+    // Legacy
     '.pv-contact-info__ci-container .t-black--light',
     '.t-12.t-black--light',
+    // Fallback - look for text before http links
+    'p:has(+ a[href^="http"])',
   ],
   // Connected since date
   connectedSince: [
+    // Modern LinkedIn
+    'time[datetime]',
+    'span[title*="Connected"]',
+    // Legacy
     '.pv-contact-info__ci-container time',
     'section.ci-connected .t-black',
     '.pv-contact-info__contact-item time',
