@@ -1,5 +1,5 @@
 {
-  "lastSequence": 9,
+  "lastSequence": 10,
   "entries": [
     {
       "branch": "feat/fix-popup-state-display",
@@ -32,6 +32,10 @@
     {
       "branch": "fix/content-script-not-ready-and-badge-overlay",
       "adrs": ["009-content-script-retry-with-backoff.md"]
+    },
+    {
+      "branch": "fix/existing-contact-badge-indicator",
+      "adrs": ["010-icon-based-state-indication.md"]
     }
   ]
 }
