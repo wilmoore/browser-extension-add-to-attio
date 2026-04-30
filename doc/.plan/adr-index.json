@@ -1,0 +1,12 @@
+{
+  "lastSequence": 10,
+  "entries": [
+    {
+      "branch": "feat/linkedin-contact-info-extraction",
+      "branchSlug": "feat-linkedin-contact-info-extraction",
+      "adrs": [],
+      "note": "No new ADRs were needed for this change (selector updates only; ADR-008 already covers contact-info modal extraction).",
+      "createdAt": "2026-04-30T19:32:00Z"
+    }
+  ]
+}
