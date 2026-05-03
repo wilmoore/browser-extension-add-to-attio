@@ -1,5 +1,5 @@
 {
-  "lastSequence": 5,
+  "lastSequence": 6,
   "items": [
     {
       "id": 1,
@@ -59,6 +59,18 @@
       "source": "/pro:bug",
       "sourceBranch": "fix/linkedin-contact-info-missing-fields",
       "createdAt": "2026-04-30T19:45:00Z",
+      "status": "completed"
+    },
+    {
+      "id": 6,
+      "title": "Suppress 'No tab with id' runtime errors",
+      "description": "Chrome extensions can emit `Unchecked runtime.lastError: No tab with id: <id>` when tab-scoped APIs race tab closure/replacement. The extension currently performs background badge checks and message sends that can hit this race. Implement safe wrappers for tab-scoped Chrome APIs (tabs.sendMessage, action.setIcon, action.setBadgeText, action.setBadgeBackgroundColor) that consume runtime.lastError and treat 'No tab with id' as a benign race, preventing noisy error entries in chrome://extensions while preserving behavior.",
+      "category": "bug",
+      "severity": "low",
+      "fingerprint": "bug|6|no-tab-runtime-error",
+      "source": "/pro:bug",
+      "sourceBranch": "fix/no-tab-runtime-error",
+      "createdAt": "2026-05-03T00:00:00Z",
       "status": "in-progress"
     }
   ]
