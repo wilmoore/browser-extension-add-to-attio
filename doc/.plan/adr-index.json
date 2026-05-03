@@ -19,6 +19,13 @@
         }
       ],
       "createdAt": "2026-04-30T21:22:43Z"
+    },
+    {
+      "branch": "fix/no-tab-runtime-error",
+      "branchSlug": "fix-no-tab-runtime-error",
+      "adrs": [],
+      "note": "No new ADRs were needed for this change (defensive runtime.lastError consumption only).",
+      "createdAt": "2026-05-03T16:53:26Z"
     }
   ]
 }

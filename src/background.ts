@@ -38,14 +38,78 @@ import type {
  * Send a message to a content script with retry logic
  * Retries with exponential backoff when content script is not ready
  */
+
+function isNoTabError(error: unknown): boolean {
+  const message = (error as { message?: string } | null | undefined)?.message;
+  return typeof message === 'string' && message.includes('No tab with id');
+}
+
+function tabsSendMessageSafe<T>(tabId: number, message: unknown): Promise<T | null> {
+  return new Promise((resolve, reject) => {
+    // Use callback form so we can consume chrome.runtime.lastError.
+    chrome.tabs.sendMessage(tabId, message, (response) => {
+      const err = chrome.runtime.lastError;
+      if (err) {
+        if (isNoTabError(err)) return resolve(null);
+        return reject(err);
+      }
+      resolve(response as T);
+    });
+  });
+}
+
+function actionSetIconSafe(tabId: number, path: Record<number, string>): Promise<boolean> {
+  return new Promise((resolve) => {
+    chrome.action.setIcon({ tabId, path }, () => {
+      const err = chrome.runtime.lastError;
+      if (err && !isNoTabError(err)) {
+        log.background('setIcon failed: %s', err.message);
+      }
+      resolve(!err);
+    });
+  });
+}
+
+function actionSetBadgeTextSafe(tabId: number, text: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    chrome.action.setBadgeText({ tabId, text }, () => {
+      const err = chrome.runtime.lastError;
+      if (err && !isNoTabError(err)) {
+        log.background('setBadgeText failed: %s', err.message);
+      }
+      resolve(!err);
+    });
+  });
+}
+
+function actionSetBadgeBackgroundColorSafe(tabId: number, color: BadgeState['color']): Promise<boolean> {
+  return new Promise((resolve) => {
+    chrome.action.setBadgeBackgroundColor({ tabId, color }, () => {
+      const err = chrome.runtime.lastError;
+      if (err && !isNoTabError(err)) {
+        log.background('setBadgeBackgroundColor failed: %s', err.message);
+      }
+      resolve(!err);
+    });
+  });
+}
+
 async function sendMessageWithRetry<T>(
   tabId: number,
   message: unknown,
   retryDelays: number[] = TIMING.BADGE_RETRY_DELAYS
 ): Promise<T> {
   try {
-    return await chrome.tabs.sendMessage(tabId, message) as T;
+    const response = await tabsSendMessageSafe<T>(tabId, message);
+    if (response == null) {
+      // Tab disappeared; stop retrying.
+      throw new Error('No tab with id');
+    }
+    return response;
   } catch (error) {
+    if (isNoTabError(error)) {
+      throw error;
+    }
     if (retryDelays.length === 0) {
       throw error;
     }
@@ -136,22 +200,13 @@ async function updateBadge(tabId: number, state: BadgeState): Promise<void> {
       iconPaths = EXTENSION_ICONS.DEFAULT;
     }
 
-    // Swap the extension icon
-    await chrome.action.setIcon({
-      tabId,
-      path: iconPaths,
-    });
+    // Swap the extension icon (consume runtime.lastError to avoid noisy "No tab" errors)
+    await actionSetIconSafe(tabId, iconPaths);
 
     // Clear any badge text (icons now convey state, no text overlay needed)
-    await chrome.action.setBadgeText({
-      tabId,
-      text: state.text,
-    });
+    await actionSetBadgeTextSafe(tabId, state.text);
 
-    await chrome.action.setBadgeBackgroundColor({
-      tabId,
-      color: state.color,
-    });
+    await actionSetBadgeBackgroundColorSafe(tabId, state.color);
   } catch (error) {
     // Tab may no longer exist
     log.background('Badge update failed: %s', (error as Error).message);
@@ -444,11 +499,15 @@ async function handleCaptureProfile(
     }
 
     // Send message to content script to extract profile data
-    const profileData = await chrome.tabs.sendMessage(tabId, {
+    const profileData = await tabsSendMessageSafe<ProfileData>(tabId, {
       action: 'extractProfile',
       // Capture flow: include richer fields when available.
       includeContactInfo: true,
-    }) as ProfileData;
+    });
+
+    if (!profileData) {
+      return { success: false, error: 'Tab was closed before capture could complete.' };
+    }
 
     if (!profileData || profileData.error) {
       return {
@@ -479,7 +538,7 @@ async function handleCaptureProfile(
 
     // Notify content script of success
     const message = isUpdate ? 'Updated in Attio!' : 'Added to Attio!';
-    await chrome.tabs.sendMessage(tabId, {
+    await tabsSendMessageSafe(tabId, {
       action: 'showFeedback',
       success: true,
       message,
@@ -499,7 +558,7 @@ async function handleCaptureProfile(
 
     // Notify content script of error
     try {
-      await chrome.tabs.sendMessage(tabId, {
+      await tabsSendMessageSafe(tabId, {
         action: 'showFeedback',
         success: false,
         message: errorMessage,
